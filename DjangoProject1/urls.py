@@ -14,19 +14,19 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-#from django.contrib import admin
-from django.urls import path
-
-#urlpatterns = [
-#    path('admin/', admin.site.urls),
-#]
-# DjangoProject1/urls.py
 
 from django.contrib import admin
 from django.urls import path, include  # Импортируем include
 
 urlpatterns = [
+    # 1. Административная панель
     path('admin/', admin.site.urls),
-    # Добавляем все маршруты из нашего приложения accounting
+
+    # 2. Основные URL-адреса нашего приложения accounting
     path('api/v1/', include('accounting.urls')),
+
+    # 3. КОРНЕВОЙ URL ('/') - Измените это
+    # Направляем корень на Dashboard
+    path('', include('accounting.urls')),
+    # Внимание: убедитесь, что в accounting/urls.py НЕТ пустого пути.
 ]
