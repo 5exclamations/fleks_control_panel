@@ -1,41 +1,8 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Финансовая Отчетность</title>
-    <style>
-        /* ... (стили фильтров остаются такими же) ... */
-        body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
-        h1, h2, h3 { color: #333; }
-        .filter-section { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .filter-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
-        .filter-buttons a, button[type="submit"] { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .filter-buttons a:hover, button[type="submit"]:hover { background: #0056b3; }
-        .custom-filter { display: flex; gap: 10px; align-items: flex-end; }
-        input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+{% extends "base.html" %}
 
-        /* Стили для сводки */
-        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .summary-card { padding: 15px; border-radius: 5px; color: #fff; font-weight: bold; }
-        .summary-card h3 { margin: 0 0 5px 0; color: #fff; }
-        .summary-income { background: #28a745; } /* Зеленый - Доход */
-        .summary-deposit { background: #17a2b8; } /* Голубой - Пополнения */
-        .summary-payout { background: #dc3545; } /* Красный - Выплаты */
-        .summary-profit { background: #ffc107; color: #333; } /* Желтый - Прибыль */
+{% block title %}Финансовая Отчетность{% endblock %}
 
-        /* Стили для таблицы */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #007bff; color: white; }
-
-        /* Стили для строк таблицы */
-        .income { background-color: #eaf7ec; }
-        .deposit { background-color: #e8f7fa; }
-        .payout { background-color: #fbebee; }
-    </style>
-</head>
-<body>
-
+{% block content %}
     <h1>Финансовая Отчетность</h1>
 
     <div class="filter-section">
@@ -60,6 +27,7 @@
     </div>
 
     <h2>Сводка <small>({{ current_filter_desc }})</small></h2>
+    
     <div class="summary-grid">
         <div class="summary-card summary-income">
             <h3>Общий доход (Сеансы)</h3>
@@ -116,5 +84,4 @@
         <p>Операции за выбранный период не найдены.</p>
     {% endif %}
 
-</body>
-</html>
+    {% endblock %}

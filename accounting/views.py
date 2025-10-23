@@ -14,7 +14,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal # Убедитесь, что Decimal импортирован
 from .models import Client, Worker, Transaction, ClientDeposit, WorkerPayout
-
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 # Функция для имитации пополнения баланса (нужна только для ввода денег)
 def deposit_funds(request, client_id, amount):
@@ -239,8 +239,14 @@ def print_receipt_for_session(transaction_record):
                 }
                 return render(request, 'accounting/dashboard.html', context)
 
+def is_staff_user(user):
+    """Проверяет, является ли пользователь сотрудником (is_staff) или суперпользователем."""
+    return user.is_staff
 
+@login_required(login_url='/admin/login/') # Перенаправит на страницу логина админки
+@user_passes_test(is_staff_user, login_url='/admin/login/')
 def dashboard(request):
+
     if request.method == 'POST':
         action_type = request.POST.get('action_type')
 
@@ -374,7 +380,8 @@ def dashboard(request):
 # accounting/views.py
 
 # ... (существующие функции: dashboard, process_session_payment и т.д.) ...
-
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
 def reports(request):
     """
     Отображает ЕДИНЫЙ отчет по всем финансовым операциям.

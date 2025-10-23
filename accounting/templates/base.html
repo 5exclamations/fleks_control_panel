@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Учетный Центр{% endblock %}</title>
+    <style>
+        /* ==================================== */
+        /* ОБЩИЕ СТИЛИ СИСТЕМЫ         */
+        /* ==================================== */
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
+        h1, h2, h3 { color: #333; }
+        .content { margin: 20px; }
+
+        /* ==================================== */
+        /* СТИЛИ НАВИГАЦИОННОЙ ПАНЕЛИ     */
+        /* ==================================== */
+        .navbar {
+            background: #333;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .navbar a { color: white; text-decoration: none; padding: 0 15px; transition: color 0.2s; }
+        .navbar a:hover { color: #007bff; }
+        .navbar .logo { font-size: 1.2em; font-weight: bold; color: white; }
+
+        /* ==================================== */
+        /* СТИЛИ СООБЩЕНИЙ (УСПЕХ/ОШИБКА)   */
+        /* ==================================== */
+        .messages { list-style: none; padding: 0; }
+        .messages li {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .messages .success { background: #28a745; }
+        .messages .error { background: #dc3545; }
+
+        /* ==================================== */
+        /* СТИЛИ DASHBOARD (Панель)       */
+        /* ==================================== */
+        .container {
+            display: flex;
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .form-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            flex: 1; /* Чтобы карточки занимали равное место */
+            max-width: 350px;
+        }
+        .form-card h2 {
+            border-bottom: 2px solid #f4f4f4;
+            padding-bottom: 15px;
+            margin-top: 0;
+            color: #007bff;
+        }
+        form { display: grid; gap: 15px; }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        button:hover { background: #0056b3; }
+
+        /* ==================================== */
+        /* СТИЛИ REPORTS (Отчеты)       */
+        /* ==================================== */
+        .filter-section { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .filter-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+        .filter-buttons a {
+            background: #5a6268; /* Серый для фильтров */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+        .filter-buttons a:hover { background: #4e555b; }
+        .custom-filter { display: flex; gap: 10px; align-items: flex-end; margin-top: 15px; }
+
+        /* Стили для сводки */
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; text-align: center; }
+        .summary-card { padding: 15px; border-radius: 8px; color: #fff; font-weight: bold; }
+        .summary-card h3 { margin: 0 0 5px 0; color: #fff; font-size: 1.1em; }
+        .summary-income { background: #28a745; }
+        .summary-deposit { background: #17a2b8; }
+        .summary-payout { background: #dc3545; }
+        .summary-profit { background: #ffc107; color: #333; }
+
+        /* Стили для таблицы */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 8px; overflow: hidden; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #007bff; color: white; }
+
+        /* Стили для строк таблицы */
+        .income { background-color: #eaf7ec; }
+        .deposit { background-color: #e8f7fa; }
+        .payout { background-color: #fbebee; }
+
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span class="logo">Учетный Центр</span>
+        <div>
+            <a href="{% url 'dashboard' %}">Панель управления</a>
+            <a href="{% url 'reports' %}">Отчетность</a>
+            <a href="/admin/">Админка Django</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'admin:logout' %}">Выход ({{ user.username }})</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>
