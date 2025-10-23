@@ -26,7 +26,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# 2. Убеждаемся, что cookies сессии отправляются только через HTTPS
+SESSION_COOKIE_SECURE = True
+
+# 3. Убеждаемся, что cookies CSRF отправляются только через HTTPS
+CSRF_COOKIE_SECURE = True
+
+# 4. (Опционально) Убеждаемся, что cookies доступны только через HTTP (защита от XSS)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
 ALLOWED_HOSTS = [
     'fleks-control-panel.onrender.com',
     '127.0.0.1',
@@ -49,6 +59,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -135,7 +146,7 @@ LOGIN_REDIRECT_URL = '/api/v1/dashboard/'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_URL = 'static/'
 
 # Default primary key field type
