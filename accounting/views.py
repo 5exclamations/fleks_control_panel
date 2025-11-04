@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 # accounting/views.py
-
+from django.db.models import Sum, Q
 from django.shortcuts import render, redirect
 from django.db import transaction
 from django.http import HttpResponse
@@ -13,7 +13,7 @@ from django.db.models import Sum # Для расчета суммы
 from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal # Убедитесь, что Decimal импортирован
-from .models import Client, Worker, Transaction, ClientDeposit, WorkerPayout
+from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 # Функция для имитации пополнения баланса (нужна только для ввода денег)
@@ -35,7 +35,7 @@ def process_session_payment(request, client_id, worker_id, session_cost):
 
     try:
         client = Client.objects.select_for_update().get(id=client_id)
-        worker = Worker.objects.select_for_update().get(id=worker_id)
+        worker = Worker.objects.get(id=worker_id)
 
         # 1. ПРОВЕРКА БАЛАНСА
         if client.balance < session_cost:
@@ -48,8 +48,8 @@ def process_session_payment(request, client_id, worker_id, session_cost):
         client.save()
 
         # 3. АВТОМАТИЧЕСКОЕ ЗАЧИСЛЕНИЕ СОТРУДНИКУ
-        worker.balance += session_cost
-        worker.save()
+        #worker.balance += session_cost
+        #worker.save()
 
         # 4. ЗАПИСЬ ТРАНЗАКЦИИ
         transaction_record = Transaction.objects.create(
@@ -112,132 +112,6 @@ def print_receipt_for_session(transaction_record):
         transaction_record.receipt_printed = True
         transaction_record.save()
 
-        def dashboard(request):
-
-            if request.method == 'POST':
-                action_type = request.POST.get('action_type')
-
-                # --- 1. Логика ПОПОЛНЕНИЯ БАЛАНСА (Обновлено) ---
-                if action_type == 'deposit':
-                    try:
-                        client_id = request.POST.get('client_id')
-                        amount_str = request.POST.get('amount')
-
-                        if not client_id or not amount_str or Decimal(amount_str) <= 0:
-                            messages.error(request, "Ошибка пополнения: Клиент не выбран или сумма некорректна.")
-                            return redirect('dashboard')
-
-                        client = Client.objects.get(id=client_id)
-                        amount = Decimal(amount_str)
-
-                        # Используем транзакцию для безопасности
-                        with transaction.atomic():
-                            client.balance += amount
-                            client.save()
-                            # СОЗДАЕМ ЗАПИСЬ О ПОПОЛНЕНИИ
-                            ClientDeposit.objects.create(client=client, amount=amount)
-
-                        messages.success(request, f"Баланс клиента {client.full_name} успешно пополнен на {amount}.")
-
-                    except Client.DoesNotExist:
-                        messages.error(request, "Ошибка: Клиент не найден.")
-                    except Exception as e:
-                        messages.error(request, f"Ошибка пополнения: {e}")
-
-                # --- 2. Логика ОПЛАТЫ СЕАНСА (Без изменений) ---
-                elif action_type == 'process_session':
-                    # ... (эта часть логики остается такой же, как была) ...
-                    try:
-                        client_id = request.POST.get('client_id')
-                        worker_id = request.POST.get('worker_id')
-                        cost_str = request.POST.get('session_cost')
-
-                        if not client_id or not worker_id or not cost_str or Decimal(cost_str) <= 0:
-                            messages.error(request, "Ошибка сеанса: Данные некорректны.")
-                            return redirect('dashboard')
-
-                        session_cost = Decimal(cost_str)
-
-                        with transaction.atomic():
-                            client = Client.objects.select_for_update().get(id=client_id)
-                            worker = Worker.objects.select_for_update().get(id=worker_id)
-
-                            if client.balance < session_cost:
-                                messages.error(request,
-                                               f"Ошибка: Недостаточно средств на балансе клиента {client.full_name}.")
-                                return redirect('dashboard')
-
-                            client.balance -= session_cost
-                            client.save()
-
-                            worker.balance += session_cost
-                            worker.save()
-
-                            transaction_record = Transaction.objects.create(
-                                client=client,
-                                worker=worker,
-                                amount=session_cost,
-                                receipt_printed=False
-                            )
-
-                            messages.success(request, "Оплата сеанса прошла успешно.")
-                            print_receipt_for_session(transaction_record)
-
-                    except Client.DoesNotExist:
-                        messages.error(request, "Ошибка: Клиент не найден.")
-                    except Worker.DoesNotExist:
-                        messages.error(request, "Ошибка: Сотрудник не найден.")
-                    except Exception as e:
-                        messages.error(request, f"Произошла непредвиденная ошибка: {e}")
-
-                # --- 3. НОВАЯ ЛОГИКА: ВЫПЛАТА СОТРУДНИКУ ---
-                elif action_type == 'payout':
-                    try:
-                        worker_id = request.POST.get('worker_id')
-                        amount_str = request.POST.get('amount')
-
-                        if not worker_id or not amount_str or Decimal(amount_str) <= 0:
-                            messages.error(request, "Ошибка выплаты: Сотрудник не выбран или сумма некорректна.")
-                            return redirect('dashboard')
-
-                        amount = Decimal(amount_str)
-
-                        with transaction.atomic():
-                            worker = Worker.objects.select_for_update().get(id=worker_id)
-
-                            # Проверка, хватает ли у сотрудника денег на балансе
-                            if worker.balance < amount:
-                                messages.error(request,
-                                               f"Ошибка: На балансе сотрудника {worker.user.username} недостаточно средств для выплаты.")
-                                return redirect('dashboard')
-
-                            # Снимаем деньги с баланса сотрудника
-                            worker.balance -= amount
-                            worker.save()
-
-                            # СОЗДАЕМ ЗАПИСЬ О ВЫПЛАТЕ
-                            WorkerPayout.objects.create(worker=worker, amount=amount)
-
-                        messages.success(request,
-                                         f"Выплата сотруднику {worker.user.username} на сумму {amount} успешно проведена.")
-
-                    except Worker.DoesNotExist:
-                        messages.error(request, "Ошибка: Сотрудник не найден.")
-                    except Exception as e:
-                        messages.error(request, f"Ошибка выплаты: {e}")
-
-                return redirect('dashboard')
-
-                # --- GET-запрос (без изменений) ---
-            else:
-                clients = Client.objects.all()
-                workers = Worker.objects.all()
-
-                context = {
-                    'clients': clients,
-                    'workers': workers
-                }
-                return render(request, 'accounting/dashboard.html', context)
 
 def is_staff_user(user):
     """Проверяет, является ли пользователь сотрудником (is_staff) или суперпользователем."""
@@ -246,6 +120,8 @@ def is_staff_user(user):
 @login_required(login_url='/admin/login/') # Перенаправит на страницу логина админки
 @user_passes_test(is_staff_user, login_url='/admin/login/')
 def dashboard(request):
+    client_q = request.GET.get('client_q', '').strip()
+    worker_q = request.GET.get('worker_q', '').strip()
 
     if request.method == 'POST':
         action_type = request.POST.get('action_type')
@@ -282,7 +158,6 @@ def dashboard(request):
 
         # --- 2. Логика ОПЛАТЫ СЕАНСА (Без изменений) ---
         elif action_type == 'process_session':
-            # ... (логика оплаты сеанса остается как есть) ...
             try:
                 client_id = request.POST.get('client_id')
                 worker_id = request.POST.get('worker_id')
@@ -304,8 +179,8 @@ def dashboard(request):
 
                     client.balance -= session_cost
                     client.save()
-                    worker.balance += session_cost
-                    worker.save()
+                    #worker.balance += session_cost
+                    #worker.save()
 
                     transaction_record = Transaction.objects.create(
                         client=client,
@@ -315,7 +190,7 @@ def dashboard(request):
                     )
 
                     messages.success(request, "Оплата сеанса прошла успешно.")
-                    # print_receipt_for_session(transaction_record)
+                    print_receipt_for_session(transaction_record)
 
             except Client.DoesNotExist:
                 messages.error(request, "Ошибка: Клиент не найден.")
@@ -327,52 +202,28 @@ def dashboard(request):
 
         # --- 3. НОВАЯ ЛОГИКА: ВЫПЛАТА СОТРУДНИКУ (ОБНОВЛЕНО) ---
         elif action_type == 'payout':
-            try:
-                worker_id = request.POST.get('worker_id')
-                # Читаем новое имя поля: payout_amount
-                amount_str = request.POST.get('payout_amount')
-
-                if not worker_id or not amount_str or Decimal(amount_str) <= 0:
-                    messages.error(request, "Ошибка: Сотрудник не выбран или сумма выплаты некорректна.")
-                    return redirect('dashboard')
-
-                amount = Decimal(amount_str)
-
-                with transaction.atomic():
-                    worker = Worker.objects.select_for_update().get(id=worker_id)
-
-                    if worker.balance < amount:
-                        messages.error(request,
-                                       f"Ошибка: На балансе сотрудника {worker.user.username} недостаточно средств для выплаты.")
-                        return redirect('dashboard')
-
-                    # 1. Изменение баланса
-                    worker.balance -= amount
-                    worker.save()
-
-                    # 2. Создание записи для отчета
-                    WorkerPayout.objects.create(worker=worker, amount=amount)
-
-                messages.success(request,
-                                 f"Выплата сотруднику {worker.user.username} на сумму {amount} успешно проведена.")
-
-            except Worker.DoesNotExist:
-                messages.error(request, "Ошибка: Сотрудник не найден.")
-            except Exception as e:
-                # Отладочный вывод, который поможет, если проблема не в логике, а в данных
-                print(f"ОШИБКА ВЫПЛАТЫ: {e}")
-                messages.error(request, f"Произошла непредвиденная ошибка при выплате: {e}")
-
-        return redirect('dashboard')
-
-        # --- GET-запрос (без изменений) ---
+            messages.error(request, "Операция выплаты сотруднику отключена, так как баланс сотрудника убран.")
+            # Не перенаправляем на дашборд сразу, чтобы сообщение было видно
+            return redirect(f"{request.path}?client_q={client_q}&worker_q={worker_q}")
+        return redirect(f"{request.path}?client_q={client_q}&worker_q={worker_q}")
     else:
-        clients = Client.objects.all()
-        workers = Worker.objects.all()
+        clients_qs = Client.objects.all()
+        workers_qs = Worker.objects.all()
+
+        if client_q:
+            clients_qs = clients_qs.filter(full_name__icontains=client_q)
+        if worker_q:
+            workers_qs = workers_qs.filter(
+                Q(user__username__icontains=worker_q) |  # Поиск по логину
+                Q(user__first_name__icontains=worker_q) |  # Поиск по имени
+                Q(user__last_name__icontains=worker_q)  # Поиск по фамилии
+            )
 
         context = {
-            'clients': clients,
-            'workers': workers
+            'clients': clients_qs,
+            'workers': workers_qs,
+            'client_q': client_q, # Передаем параметр поиска для отображения в поле
+            'worker_q': worker_q,
         }
         return render(request, 'accounting/dashboard.html', context)
 
@@ -430,24 +281,24 @@ def reports(request):
     # Базовые QuerySets
     transactions_qs = Transaction.objects.select_related('client', 'worker__user').all()
     deposits_qs = ClientDeposit.objects.select_related('client').all()
-    payouts_qs = WorkerPayout.objects.select_related('worker__user').all()
+    #payouts_qs = WorkerPayout.objects.select_related('worker__user').all()
 
     # Применяем фильтры дат, если они есть
     if start_date and end_date:
         transactions_qs = transactions_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
         deposits_qs = deposits_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
-        payouts_qs = payouts_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
+        #payouts_qs = payouts_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
 
     # --- 3. Расчет сводки (Доход = Сеансы) ---
     total_income = transactions_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
-    total_payouts = payouts_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    #total_payouts = payouts_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_deposits = deposits_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
 
     context['total_income'] = total_income
-    context['total_payouts'] = total_payouts
+    context['total_payouts'] = Decimal('0.00')
     context['total_deposits'] = total_deposits
     # Чистая прибыль (Доход минус Выплаты)
-    context['net_profit'] = total_income - total_payouts
+    context['net_profit'] = total_income
 
     # --- 4. Создание ЕДИНОГО списка событий ---
     unified_log = []
@@ -472,15 +323,15 @@ def reports(request):
             'css_class': 'deposit'  # Для стилизации
         })
 
-    for payout in payouts_qs:
-        unified_log.append({
-            'date_time': payout.date_time,
-            'event_type': 'Выплата (Расход)',
-            'description': f"Сотрудник: {payout.worker.user.username}",
-            'amount_positive': None,
-            'amount_negative': payout.amount,
-            'css_class': 'payout'  # Для стилизации
-        })
+    #for payout in payouts_qs:
+      #  unified_log.append({
+       #     'date_time': payout.date_time,
+        #    'event_type': 'Выплата (Расход)',
+         #   'description': f"Сотрудник: {payout.worker.user.username}",
+          #  'amount_positive': None,
+           # 'amount_negative': payout.amount,
+            #'css_class': 'payout'  # Для стилизации
+        #})
 
     # --- 5. Сортировка единого списка по дате (от новых к старым) ---
     context['unified_log'] = sorted(unified_log, key=lambda e: e['date_time'], reverse=True)

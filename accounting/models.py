@@ -1,7 +1,6 @@
 # accounting/models.py
 
 from django.db import models
-from django.conf import settings
 from django.contrib.auth.models import User
 
 
@@ -39,13 +38,6 @@ class Worker(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='worker_profile'
-    )
-
-    # Баланс сотрудника (его доход)
-    balance = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0.00
     )
 
     def __str__(self):
@@ -88,8 +80,6 @@ class Transaction(models.Model):
         verbose_name_plural = "Транзакции/Сеансы"
         ordering = ['-date_time']  # Новые транзакции сверху
 
-    # accounting/models.py
-    # ... (в конце файла, после класса Transaction) ...
 
 class ClientDeposit(models.Model):
         """Модель для отслеживания пополнений баланса клиентами."""
@@ -105,16 +95,16 @@ class ClientDeposit(models.Model):
             verbose_name_plural = "Пополнения клиентов"
             ordering = ['-date_time']  # Новые сверху
 
-class WorkerPayout(models.Model):
-        """Модель для отслеживания выплат сотрудникам."""
-        worker = models.ForeignKey(Worker, on_delete=models.CASCADE, related_name='payouts')
-        amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма выплаты")
-        date_time = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время")
+#class WorkerPayout(models.Model):
+        # """Модель для отслеживания выплат сотрудникам."""
+        #         worker = models.ForeignKey(Worker, on_delete=models.CASCADE, related_name='payouts')
+        #         amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма выплаты")
+        #         date_time = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время")
 
-        def __str__(self):
-            return f"Выплата {self.worker.user.username} на {self.amount}"
+        #def __str__(self):
+        #    return f"Выплата {self.worker.user.username} на {self.amount}"
 
-        class Meta:
-            verbose_name = "Выплата сотруднику"
-            verbose_name_plural = "Выплаты сотрудникам"
-            ordering = ['-date_time']  # Новые сверху
+        #class Meta:
+        #    verbose_name = "Выплата сотруднику"
+        #    verbose_name_plural = "Выплаты сотрудникам"
+        #    ordering = ['-date_time']  # Новые сверху

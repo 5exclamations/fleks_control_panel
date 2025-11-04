@@ -5,7 +5,7 @@ from django.contrib import admin
 
 from django.contrib import admin
 # Добавьте ClientDeposit и WorkerPayout
-from .models import Client, Worker, Transaction, ClientDeposit, WorkerPayout
+from .models import Client, Worker, Transaction, ClientDeposit
 
 
 # 1. Административная панель для Транзакций
@@ -40,7 +40,7 @@ class ClientAdmin(admin.ModelAdmin):
 # 3. Административная панель для Сотрудников
 @admin.register(Worker)
 class WorkerAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'balance')
+    list_display = ('get_username',)
     search_fields = ('user__username', 'user__first_name', 'user__last_name')
 
     # Метод для отображения имени пользователя из связанной модели User
@@ -54,8 +54,8 @@ class ClientDepositAdmin(admin.ModelAdmin):
     list_filter = ('date_time',)
     search_fields = ('client__full_name',)
 
-@admin.register(WorkerPayout)
-class WorkerPayoutAdmin(admin.ModelAdmin):
-    list_display = ('date_time', 'worker', 'amount')
-    list_filter = ('date_time',)
-    search_fields = ('worker__user__username',)
+#@admin.register(WorkerPayout)
+#class WorkerPayoutAdmin(admin.ModelAdmin):
+    #list_display = ('date_time', 'worker', 'amount')
+    #list_filter = ('date_time',)
+    #search_fields = ('worker__user__username',)
