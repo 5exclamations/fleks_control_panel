@@ -1,22 +1,14 @@
-from django.shortcuts import render
-
-# Create your views here.
-# accounting/views.py
 from django.db.models import Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.http import HttpResponse
-from .models import Client, Worker, Transaction
 from django.contrib import messages
-from decimal import Decimal  # Используем Decimal для точных расчетов
-from django.db.models import Sum # Для расчета суммы
 from django.utils import timezone
 from datetime import datetime, timedelta
-from decimal import Decimal # Убедитесь, что Decimal импортирован
+from decimal import Decimal
 from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-# Функция для имитации пополнения баланса (нужна только для ввода денег)
 def deposit_funds(request, client_id, amount):
     try:
         client = Client.objects.get(id=client_id)
@@ -25,10 +17,9 @@ def deposit_funds(request, client_id, amount):
         messages.success(request, f"Баланс клиента {client.full_name} пополнен на {amount}.")
     except Client.DoesNotExist:
         messages.error(request, "Клиент не найден.")
-    return redirect('some_redirect_page')  # Перенаправьте на нужную страницу
+    return redirect('some_redirect_page')
 
 
-# Основная логика: оплата сеанса
 @transaction.atomic
 def process_session_payment(request, client_id, worker_id, session_cost):
     session_cost = Decimal(session_cost)
@@ -37,33 +28,23 @@ def process_session_payment(request, client_id, worker_id, session_cost):
         client = Client.objects.select_for_update().get(id=client_id)
         worker = Worker.objects.get(id=worker_id)
 
-        # 1. ПРОВЕРКА БАЛАНСА
         if client.balance < session_cost:
             messages.error(request, f"Ошибка: Недостаточно средств на балансе клиента {client.full_name}.")
-            # Откат всех изменений в этой транзакции, если средств недостаточно
             return HttpResponse("Error: Insufficient funds", status=400)
 
-            # 2. АВТОМАТИЧЕСКОЕ СНЯТИЕ С КЛИЕНТА
+            # taking money from balance of a client
         client.balance -= session_cost
         client.save()
-
-        # 3. АВТОМАТИЧЕСКОЕ ЗАЧИСЛЕНИЕ СОТРУДНИКУ
-        #worker.balance += session_cost
-        #worker.save()
-
-        # 4. ЗАПИСЬ ТРАНЗАКЦИИ
         transaction_record = Transaction.objects.create(
             client=client,
             worker=worker,
             amount=session_cost,
-            receipt_printed=False  # Отмечаем, что чек еще не распечатан
+            receipt_printed=False
         )
 
         messages.success(request, "Оплата сеанса прошла успешно.")
 
-        # 5. ПЕЧАТЬ ЧЕКА
-        # Здесь должна быть логика вызова функции печати (см. раздел 3)
-        # Для начала просто имитируем
+        # not implemented yet
         print_receipt_for_session(transaction_record)
 
         return HttpResponse("Payment successful and receipt printed", status=200)
@@ -74,13 +55,10 @@ def process_session_payment(request, client_id, worker_id, session_cost):
         messages.error(request, "Сотрудник не найден.")
     except Exception as e:
         messages.error(request, f"Произошла непредвиденная ошибка: {e}")
-        # Если произошла любая ошибка, @transaction.atomic откатит изменения
         return HttpResponse(f"Server Error: {e}", status=500)
 
 def print_receipt_for_session(transaction_record):
-        """Имитация логики печати чека."""
 
-        # 1. ФОРМАТИРОВАНИЕ ДАННЫХ
         receipt_data = f"""
         *** ПСИХОЛОГИЧЕСКИЙ ЦЕНТР ***
         Дата: {transaction_record.date_time.strftime('%Y-%m-%d %H:%M:%S')}
@@ -96,25 +74,22 @@ def print_receipt_for_session(transaction_record):
         Спасибо!
         """
 
-        # 2. ОТПРАВКА НА ПРИНТЕР
-        # Если вы используете python-escpos:
+        # Sending to printer
+        # python-escpos
         # printer = Escpos(device='/dev/usb/lp0')
         # printer.text(receipt_data)
         # printer.cut()
 
-        # Для целей разработки просто печатаем в консоль:
         print("\n" + "=" * 40)
         print("--- ПЕЧАТЬ ЧЕКА ---")
         print(receipt_data)
         print("=" * 40 + "\n")
 
-        # 3. Обновление статуса в базе
         transaction_record.receipt_printed = True
         transaction_record.save()
 
 
 def is_staff_user(user):
-    """Проверяет, является ли пользователь сотрудником (is_staff) или суперпользователем."""
     return user.is_staff
 
 @login_required(login_url='/admin/login/') # Перенаправит на страницу логина админки
@@ -126,11 +101,10 @@ def dashboard(request):
     if request.method == 'POST':
         action_type = request.POST.get('action_type')
 
-        # --- 1. Логика ПОПОЛНЕНИЯ БАЛАНСА (ОБНОВЛЕНО) ---
+        # depositing money to balance
         if action_type == 'deposit':
             try:
                 client_id = request.POST.get('client_id')
-                # Читаем новое имя поля: deposit_amount
                 amount_str = request.POST.get('deposit_amount')
 
                 if not client_id or not amount_str or Decimal(amount_str) <= 0:
@@ -141,10 +115,8 @@ def dashboard(request):
                 amount = Decimal(amount_str)
 
                 with transaction.atomic():
-                    # 1. Изменение баланса
                     client.balance += amount
                     client.save()
-                    # 2. Создание записи для отчета
                     ClientDeposit.objects.create(client=client, amount=amount)
 
                 messages.success(request, f"Баланс клиента {client.full_name} успешно пополнен на {amount}.")
@@ -152,11 +124,9 @@ def dashboard(request):
             except Client.DoesNotExist:
                 messages.error(request, "Ошибка: Клиент не найден.")
             except Exception as e:
-                # Отладочный вывод, который поможет, если проблема не в логике, а в данных
                 print(f"ОШИБКА ДЕПОЗИТА: {e}")
                 messages.error(request, f"Произошла непредвиденная ошибка при пополнении: {e}")
 
-        # --- 2. Логика ОПЛАТЫ СЕАНСА (Без изменений) ---
         elif action_type == 'process_session':
             try:
                 client_id = request.POST.get('client_id')
@@ -179,8 +149,7 @@ def dashboard(request):
 
                     client.balance -= session_cost
                     client.save()
-                    #worker.balance += session_cost
-                    #worker.save()
+
 
                     transaction_record = Transaction.objects.create(
                         client=client,
@@ -200,10 +169,9 @@ def dashboard(request):
                 messages.error(request, f"Произошла непредвиденная ошибка: {e}")
 
 
-        # --- 3. НОВАЯ ЛОГИКА: ВЫПЛАТА СОТРУДНИКУ (ОБНОВЛЕНО) ---
+        # temprorary removed this functionality
         elif action_type == 'payout':
             messages.error(request, "Операция выплаты сотруднику отключена, так как баланс сотрудника убран.")
-            # Не перенаправляем на дашборд сразу, чтобы сообщение было видно
             return redirect(f"{request.path}?client_q={client_q}&worker_q={worker_q}")
         return redirect(f"{request.path}?client_q={client_q}&worker_q={worker_q}")
     else:
@@ -224,28 +192,22 @@ def dashboard(request):
             'clients': clients_qs,
             'workers': workers_qs,
             'recent_transactions': recent_transactions,
-            'client_q': client_q, # Передаем параметр поиска для отображения в поле
+            'client_q': client_q,
             'worker_q': worker_q,
         }
         return render(request, 'accounting/dashboard.html', context)
 
-
-# accounting/views.py
-
-# ... (существующие функции: dashboard, process_session_payment и т.д.) ...
 @login_required(login_url='/admin/login/')
 @user_passes_test(is_staff_user, login_url='/admin/login/')
 def reports(request):
-    """
-    Отображает ЕДИНЫЙ отчет по всем финансовым операциям.
-    """
+    # all reports
     context = {
         'current_filter_desc': 'за все время',
         'start_date_input': '',
         'end_date_input': '',
     }
 
-    # --- 1. Логика фильтрации дат (такая же, как была) ---
+    # date filtration
     now = timezone.now().date()
     start_date = None
     end_date = None
@@ -278,20 +240,14 @@ def reports(request):
         except ValueError:
             messages.error(request, "Неверный формат даты. Используйте ГГГГ-ММ-ДД.")
 
-    # --- 2. Получение данных из 3-х источников ---
-
-    # Базовые QuerySets
+    # basic QuerySets
     transactions_qs = Transaction.objects.select_related('client', 'worker__user').all()
     deposits_qs = ClientDeposit.objects.select_related('client').all()
-    #payouts_qs = WorkerPayout.objects.select_related('worker__user').all()
-
-    # Применяем фильтры дат, если они есть
     if start_date and end_date:
         transactions_qs = transactions_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
         deposits_qs = deposits_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
-        #payouts_qs = payouts_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
 
-    # --- Дополнительные фильтры по клиенту и сотруднику ---
+
     selected_client_id = request.GET.get('client_id')
     selected_worker_id = request.GET.get('worker_id')
 
@@ -308,18 +264,15 @@ def reports(request):
         except ValueError:
             messages.error(request, "Неверный идентификатор сотрудника.")
 
-    # --- 3. Расчет сводки (Доход = Сеансы) ---
     total_income = transactions_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
-    #total_payouts = payouts_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_deposits = deposits_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
 
     context['total_income'] = total_income
     context['total_payouts'] = Decimal('0.00')
     context['total_deposits'] = total_deposits
-    # Чистая прибыль (Доход минус Выплаты)
     context['net_profit'] = total_income
 
-    # --- 4. Создание ЕДИНОГО списка событий ---
+
     unified_log = []
 
     for tx in transactions_qs:
@@ -329,7 +282,7 @@ def reports(request):
             'description': f"{tx.client.full_name} -> {tx.worker.user.username}",
             'amount_positive': tx.amount,
             'amount_negative': None,
-            'css_class': 'income'  # Для стилизации
+            'css_class': 'income'
         })
 
     for deposit in deposits_qs:
@@ -339,14 +292,14 @@ def reports(request):
             'description': f"Клиент: {deposit.client.full_name}",
             'amount_positive': deposit.amount,
             'amount_negative': None,
-            'css_class': 'deposit'  # Для стилизации
+            'css_class': 'deposit'
         })
 
 
-    # Сортировка единого списка по дате (от новых к старым) ---
+
     context['unified_log'] = sorted(unified_log, key=lambda e: e['date_time'], reverse=True)
 
-    # Данные для фильтров на форме
+
     context['clients'] = Client.objects.all()
     context['workers'] = Worker.objects.select_related('user').all()
     context['selected_client_id'] = selected_client_id or ''
@@ -358,13 +311,11 @@ def reports(request):
 @login_required(login_url='/admin/login/')
 @user_passes_test(is_staff_user, login_url='/admin/login/')
 def print_receipt(request, transaction_id):
-    """Печать (и перепечать) чека для выбранной транзакции."""
     transaction_record = get_object_or_404(Transaction.objects.select_related('client', 'worker__user'), id=transaction_id)
     try:
         print_receipt_for_session(transaction_record)
         messages.success(request, "Чек успешно напечатан.")
     except Exception as e:
         messages.error(request, f"Не удалось напечатать чек: {e}")
-    # Возврат на предыдущую страницу или на дашборд
     next_url = request.META.get('HTTP_REFERER') or 'dashboard'
     return redirect(next_url)

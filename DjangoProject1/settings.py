@@ -28,13 +28,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# 2. Убеждаемся, что cookies сессии отправляются только через HTTPS
 SESSION_COOKIE_SECURE = True
 
-# 3. Убеждаемся, что cookies CSRF отправляются только через HTTPS
 CSRF_COOKIE_SECURE = True
 
-# 4. (Опционально) Убеждаемся, что cookies доступны только через HTTP (защита от XSS)
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 ALLOWED_HOSTS = [
@@ -43,8 +40,6 @@ ALLOWED_HOSTS = [
     'localhost'
 ]
 
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -88,15 +83,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'DjangoProject1.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
-#}
 SECRET_KEY = os.getenv('SECRET_KEY')
 tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 DATABASES = {
@@ -111,8 +98,6 @@ DATABASES = {
     }
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {

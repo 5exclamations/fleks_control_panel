@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <title>{% block title %}Учетный Центр{% endblock %}</title>
     <style>
-        /* ==================================== */
-        /* ОБЩИЕ СТИЛИ СИСТЕМЫ         */
-        /* ==================================== */
         body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
         h1, h2, h3 { color: #333; }
         .content { margin: 20px; }
@@ -17,9 +14,7 @@
         #session-form{
             margin-right: 20%;
         }
-        /* ==================================== */
-        /* СТИЛИ НАВИГАЦИОННОЙ ПАНЕЛИ     */
-        /* ==================================== */
+
         .navbar {
             background: #333;
             padding: 15px 20px;
@@ -32,9 +27,7 @@
         .navbar a:hover { color: #007bff; }
         .navbar .logo { font-size: 1.2em; font-weight: bold; color: white; }
 
-        /* ==================================== */
-        /* СТИЛИ СООБЩЕНИЙ (УСПЕХ/ОШИБКА)   */
-        /* ==================================== */
+
         .messages { list-style: none; padding: 0; }
         .messages li {
             padding: 15px;
@@ -46,9 +39,7 @@
         .messages .success { background: #28a745; }
         .messages .error { background: #dc3545; }
 
-        /* ==================================== */
-        /* СТИЛИ DASHBOARD (Панель)       */
-        /* ==================================== */
+
         .container {
             display: flex;
             gap: 25px;
@@ -59,7 +50,7 @@
             border-radius: 10px;
             padding: 25px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            flex: 1; /* Чтобы карточки занимали равное место */
+            flex: 1;
             max-width: 350px;
         }
         .form-card h2 {
@@ -94,9 +85,7 @@
         }
         button:hover { background: #0056b3; }
 
-        /* ==================================== */
-        /* СТИЛИ REPORTS (Отчеты)       */
-        /* ==================================== */
+
         .filter-section { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .filter-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
         .filter-buttons a {
@@ -112,7 +101,7 @@
         .filter-buttons a:hover { background: #4e555b; }
         .custom-filter { display: flex; gap: 10px; align-items: flex-end; margin-top: 15px; }
 
-        /* Стили для сводки */
+
         .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; text-align: center; }
         .summary-card { padding: 15px; border-radius: 8px; color: #fff; font-weight: bold; }
         .summary-card h3 { margin: 0 0 5px 0; color: #fff; font-size: 1.1em; }
@@ -121,12 +110,10 @@
         .summary-payout { background: #dc3545; }
         .summary-profit { background: #ffc107; color: #333; }
 
-        /* Стили для таблицы */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 8px; overflow: hidden; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background: #007bff; color: white; }
 
-        /* Стили для строк таблицы */
         .income { background-color: #eaf7ec; }
         .deposit { background-color: #e8f7fa; }
         .payout { background-color: #fbebee; }

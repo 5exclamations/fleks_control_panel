@@ -1,22 +1,19 @@
-# accounting/models.py
-
 from django.db import models
 from django.contrib.auth.models import User
 
 
-# Модель клиента
 class Client(models.Model):
-    # Привязка к встроенному пользователю Django (если нужна аутентификация)
+    # Django user
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name='client_profile',
         null=True, blank=True
     )
-    # Или просто имя/контакт, если отдельная аутентификация не нужна
+
     full_name = models.CharField(max_length=200)
 
-    # Главное поле: баланс клиента
+
     balance = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -31,9 +28,8 @@ class Client(models.Model):
         verbose_name_plural = "Клиенты"
 
 
-# Модель сотрудника (психолога)
 class Worker(models.Model):
-    # Используем встроенного пользователя Django для входа в систему и админки
+    # using Django user to enter into admin panel
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -48,11 +44,10 @@ class Worker(models.Model):
         verbose_name_plural = "Сотрудники"
 
 
-# Модель транзакции (сеанса)
 class Transaction(models.Model):
     client = models.ForeignKey(
         Client,
-        on_delete=models.PROTECT,  # Не удалять клиента, если у него есть транзакции
+        on_delete=models.PROTECT,  # avoid deleting client if there is a transaction
         related_name='transactions_as_client'
     )
     worker = models.ForeignKey(
@@ -69,7 +64,6 @@ class Transaction(models.Model):
 
     date_time = models.DateTimeField(auto_now_add=True)
 
-    # Флаг для печати чека (для отслеживания, был ли чек распечатан)
     receipt_printed = models.BooleanField(default=False)
 
     def __str__(self):
@@ -78,11 +72,10 @@ class Transaction(models.Model):
     class Meta:
         verbose_name = "Транзакция/Сеанс"
         verbose_name_plural = "Транзакции/Сеансы"
-        ordering = ['-date_time']  # Новые транзакции сверху
+        ordering = ['-date_time']
 
 
 class ClientDeposit(models.Model):
-        """Модель для отслеживания пополнений баланса клиентами."""
         client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='deposits')
         amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма пополнения")
         date_time = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время")
@@ -93,18 +86,4 @@ class ClientDeposit(models.Model):
         class Meta:
             verbose_name = "Пополнение клиента"
             verbose_name_plural = "Пополнения клиентов"
-            ordering = ['-date_time']  # Новые сверху
-
-#class WorkerPayout(models.Model):
-        # """Модель для отслеживания выплат сотрудникам."""
-        #         worker = models.ForeignKey(Worker, on_delete=models.CASCADE, related_name='payouts')
-        #         amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма выплаты")
-        #         date_time = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время")
-
-        #def __str__(self):
-        #    return f"Выплата {self.worker.user.username} на {self.amount}"
-
-        #class Meta:
-        #    verbose_name = "Выплата сотруднику"
-        #    verbose_name_plural = "Выплаты сотрудникам"
-        #    ordering = ['-date_time']  # Новые сверху
+            ordering = ['-date_time']
