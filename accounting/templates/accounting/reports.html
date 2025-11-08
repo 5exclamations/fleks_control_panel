@@ -22,12 +22,30 @@
                 <label for="end_date">Конечная дата:</label>
                 <input type="date" id="end_date" name="end_date" required value="{{ end_date_input }}">
             </div>
+            <div>
+                <label for="client_id">Клиент:</label>
+                <select id="client_id" name="client_id">
+                    <option value="">Все клиенты</option>
+                    {% for c in clients %}
+                        <option value="{{ c.id }}" {% if selected_client_id == c.id|stringformat:'s' %}selected{% endif %}>{{ c.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="worker_id">Сотрудник:</label>
+                <select id="worker_id" name="worker_id">
+                    <option value="">Все сотрудники</option>
+                    {% for w in workers %}
+                        <option value="{{ w.id }}" {% if selected_worker_id == w.id|stringformat:'s' %}selected{% endif %}>{{ w.user.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <button type="submit">Показать период</button>
         </form>
     </div>
 
     <h2>Сводка <small>({{ current_filter_desc }})</small></h2>
-    
+
     <div class="summary-grid">
         <div class="summary-card summary-income">
             <h3>Общий доход (Сеансы)</h3>

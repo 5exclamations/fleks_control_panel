@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 # accounting/views.py
 from django.db.models import Sum, Q
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.http import HttpResponse
 from .models import Client, Worker, Transaction
@@ -209,6 +209,7 @@ def dashboard(request):
     else:
         clients_qs = Client.objects.all()
         workers_qs = Worker.objects.all()
+        recent_transactions = Transaction.objects.select_related('client', 'worker__user').order_by('-date_time')[:20]
 
         if client_q:
             clients_qs = clients_qs.filter(full_name__icontains=client_q)
@@ -222,6 +223,7 @@ def dashboard(request):
         context = {
             'clients': clients_qs,
             'workers': workers_qs,
+            'recent_transactions': recent_transactions,
             'client_q': client_q, # Передаем параметр поиска для отображения в поле
             'worker_q': worker_q,
         }
@@ -289,6 +291,23 @@ def reports(request):
         deposits_qs = deposits_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
         #payouts_qs = payouts_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
 
+    # --- Дополнительные фильтры по клиенту и сотруднику ---
+    selected_client_id = request.GET.get('client_id')
+    selected_worker_id = request.GET.get('worker_id')
+
+    if selected_client_id:
+        try:
+            transactions_qs = transactions_qs.filter(client_id=int(selected_client_id))
+            deposits_qs = deposits_qs.filter(client_id=int(selected_client_id))
+        except ValueError:
+            messages.error(request, "Неверный идентификатор клиента.")
+
+    if selected_worker_id:
+        try:
+            transactions_qs = transactions_qs.filter(worker_id=int(selected_worker_id))
+        except ValueError:
+            messages.error(request, "Неверный идентификатор сотрудника.")
+
     # --- 3. Расчет сводки (Доход = Сеансы) ---
     total_income = transactions_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     #total_payouts = payouts_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
@@ -323,17 +342,29 @@ def reports(request):
             'css_class': 'deposit'  # Для стилизации
         })
 
-    #for payout in payouts_qs:
-      #  unified_log.append({
-       #     'date_time': payout.date_time,
-        #    'event_type': 'Выплата (Расход)',
-         #   'description': f"Сотрудник: {payout.worker.user.username}",
-          #  'amount_positive': None,
-           # 'amount_negative': payout.amount,
-            #'css_class': 'payout'  # Для стилизации
-        #})
 
-    # --- 5. Сортировка единого списка по дате (от новых к старым) ---
+    # Сортировка единого списка по дате (от новых к старым) ---
     context['unified_log'] = sorted(unified_log, key=lambda e: e['date_time'], reverse=True)
 
+    # Данные для фильтров на форме
+    context['clients'] = Client.objects.all()
+    context['workers'] = Worker.objects.select_related('user').all()
+    context['selected_client_id'] = selected_client_id or ''
+    context['selected_worker_id'] = selected_worker_id or ''
+
     return render(request, 'accounting/reports.html', context)
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def print_receipt(request, transaction_id):
+    """Печать (и перепечать) чека для выбранной транзакции."""
+    transaction_record = get_object_or_404(Transaction.objects.select_related('client', 'worker__user'), id=transaction_id)
+    try:
+        print_receipt_for_session(transaction_record)
+        messages.success(request, "Чек успешно напечатан.")
+    except Exception as e:
+        messages.error(request, f"Не удалось напечатать чек: {e}")
+    # Возврат на предыдущую страницу или на дашборд
+    next_url = request.META.get('HTTP_REFERER') or 'dashboard'
+    return redirect(next_url)

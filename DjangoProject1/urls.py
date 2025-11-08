@@ -19,14 +19,11 @@ from django.contrib import admin
 from django.urls import path, include  # Импортируем include
 
 urlpatterns = [
-    # 1. Административная панель
+    # Admin Panel
     path('admin/', admin.site.urls),
 
-    # 2. Основные URL-адреса нашего приложения accounting
     path('api/v1/', include('accounting.urls')),
 
-    # 3. КОРНЕВОЙ URL ('/') - Измените это
-    # Направляем корень на Dashboard
+    # Root path
     path('', include('accounting.urls')),
-    # Внимание: убедитесь, что в accounting/urls.py НЕТ пустого пути.
 ]

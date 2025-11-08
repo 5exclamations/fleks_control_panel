@@ -13,6 +13,9 @@ urlpatterns = [
     # 2. Отчетность
     path('reports/', views.reports, name='reports'),
 
+    # 2.1 Печать/перепечать чека по транзакции
+    path('transactions/<int:transaction_id>/print-receipt/', views.print_receipt, name='print_receipt'),
+
     # 3. Маршрут-заглушка для корня (для чистой обработки)
     # Добавьте этот путь, ТОЛЬКО если вам нужно, чтобы /api/v1/ попадал на дашборд.
     # Если вы используете path('', views.dashboard, name='app_root') в главном urls.py,
