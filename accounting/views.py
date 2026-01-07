@@ -1,6 +1,7 @@
 from django.db.models import Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db import transaction
+from django.db import transaction, connection
+from django.db.utils import ProgrammingError
 from django.http import HttpResponse
 from django.contrib import messages
 from django.utils import timezone
@@ -10,6 +11,19 @@ from decimal import Decimal
 from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response
+
+def _has_new_client_fields():
+    """Проверяет, существуют ли новые поля в таблице Client"""
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='accounting_client' AND column_name='date_of_birth'
+            """)
+            return cursor.fetchone() is not None
+    except Exception:
+        return False
 
 def deposit_funds(request, client_id, amount):
     try:
@@ -180,16 +194,22 @@ def dashboard(request):
             except Exception as e:
                 messages.error(request, gettext("An unexpected error occurred: %(error)s") % {'error': e})
 
-
         # temprorary removed this functionality
         elif action_type == 'payout':
             messages.error(request, "Операция выплаты сотруднику отключена, так как баланс сотрудника убран.")
             return redirect(f"{request.path}?client_q={client_q}&worker_q={worker_q}")
         return redirect(f"{request.path}?client_q={client_q}&worker_q={worker_q}")
     else:
-        clients_qs = Client.objects.all()
-        workers_qs = Worker.objects.all()
-        recent_transactions = Transaction.objects.select_related('client', 'worker__user').order_by('-date_time')[:20]
+        if _has_new_client_fields():
+            clients_qs = Client.objects.all()
+            workers_qs = Worker.objects.all()
+            recent_transactions = Transaction.objects.select_related('client', 'worker__user').order_by('-date_time')[:20]
+        else:
+            # Используем только существующие поля до применения миграции
+            messages.warning(request, gettext("Database migration required. Please run: python manage.py migrate"))
+            clients_qs = []
+            workers_qs = Worker.objects.all()
+            recent_transactions = []
 
         if client_q:
             clients_qs = clients_qs.filter(full_name__icontains=client_q)
@@ -256,8 +276,18 @@ def reports(request):
             messages.error(request, gettext("Invalid date format. Use: YYYY-MM-DD."))
 
     # basic QuerySets
-    transactions_qs = Transaction.objects.select_related('client', 'worker__user').all()
-    deposits_qs = ClientDeposit.objects.select_related('client').all()
+    if _has_new_client_fields():
+        transactions_qs = Transaction.objects.select_related('client', 'worker__user').all()
+        deposits_qs = ClientDeposit.objects.select_related('client').all()
+    else:
+        # Если новые поля не существуют, показываем сообщение
+        messages.error(request, gettext("Database migration required. Please run: python manage.py migrate"))
+        context['unified_log'] = []
+        context['clients'] = []
+        context['workers'] = Worker.objects.select_related('user').all()
+        context['selected_client_id'] = selected_client_id or ''
+        context['selected_worker_id'] = selected_worker_id or ''
+        return render(request, 'accounting/reports.html', context)
     if start_date and end_date:
         transactions_qs = transactions_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
         deposits_qs = deposits_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
@@ -315,7 +345,10 @@ def reports(request):
     context['unified_log'] = sorted(unified_log, key=lambda e: e['date_time'], reverse=True)
 
 
-    context['clients'] = Client.objects.all()
+    if _has_new_client_fields():
+        context['clients'] = Client.objects.all()
+    else:
+        context['clients'] = []
     context['workers'] = Worker.objects.select_related('user').all()
     context['selected_client_id'] = selected_client_id or ''
     context['selected_worker_id'] = selected_worker_id or ''
@@ -371,3 +404,114 @@ def download_receipt_pdf(request, transaction_id):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="receipt_{transaction_record.id}.pdf"'
     return response
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def create_client(request):
+    """
+    Создание нового клиента
+    """
+    if request.method == 'POST':
+        try:
+            full_name = request.POST.get('full_name', '').strip()
+            date_of_birth_str = request.POST.get('date_of_birth', '').strip()
+            address = request.POST.get('address', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            referral_source = request.POST.get('referral_source', '').strip()
+            client_type = request.POST.get('client_type', 'adult')
+            initial_balance_str = request.POST.get('initial_balance', '0').strip()
+
+            if not full_name:
+                messages.error(request, gettext("Error: Client name is required."))
+                return render(request, 'accounting/create_client.html', {
+                    'client_types': Client.CLIENT_TYPE_CHOICES,
+                    'form_data': request.POST
+                })
+
+            # Проверяем, нет ли уже клиента с таким именем
+            if Client.objects.filter(full_name=full_name).exists():
+                messages.error(request, gettext("Error: A client with this name already exists."))
+                return render(request, 'accounting/create_client.html', {
+                    'client_types': Client.CLIENT_TYPE_CHOICES,
+                    'form_data': request.POST
+                })
+
+            # Парсим дату рождения
+            date_of_birth = None
+            if date_of_birth_str:
+                try:
+                    date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+                except ValueError:
+                    messages.error(request, gettext("Invalid date format. Use: YYYY-MM-DD."))
+                    return render(request, 'accounting/create_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'form_data': request.POST
+                    })
+
+            initial_balance = Decimal(initial_balance_str) if initial_balance_str else Decimal('0.00')
+
+            # Создаем нового клиента
+            new_client = Client.objects.create(
+                full_name=full_name,
+                date_of_birth=date_of_birth,
+                address=address,
+                phone=phone,
+                referral_source=referral_source,
+                client_type=client_type,
+                balance=initial_balance
+            )
+
+            messages.success(request, gettext("Client %(client_name)s created successfully.") % {
+                'client_name': new_client.full_name
+            })
+            return redirect('view_client', client_id=new_client.id)
+
+        except Exception as e:
+            messages.error(request, gettext("An unexpected error occurred while creating client: %(error)s") % {'error': e})
+            return render(request, 'accounting/create_client.html', {
+                'client_types': Client.CLIENT_TYPE_CHOICES,
+                'form_data': request.POST
+            })
+    else:
+        return render(request, 'accounting/create_client.html', {
+            'client_types': Client.CLIENT_TYPE_CHOICES
+        })
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def view_client(request, client_id):
+    """
+    Просмотр информации о клиенте
+    """
+    # Проверяем наличие новых полей перед загрузкой
+    if _has_new_client_fields():
+        client = get_object_or_404(
+            Client.objects.prefetch_related('transactions_as_client', 'deposits'),
+            id=client_id
+        )
+    else:
+        # Если новые поля не существуют, показываем сообщение
+        messages.error(request, gettext("Database migration required. Please run: python manage.py migrate"))
+        return redirect('dashboard')
+    
+    # Получаем последние транзакции и пополнения
+    recent_transactions = client.transactions_as_client.select_related('worker__user').order_by('-date_time')[:10]
+    recent_deposits = client.deposits.order_by('-date_time')[:10]
+    
+    # Вычисляем статистику
+    total_spent = client.transactions_as_client.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_deposited = client.deposits.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_sessions = client.transactions_as_client.count()
+    
+    context = {
+        'client': client,
+        'recent_transactions': recent_transactions,
+        'recent_deposits': recent_deposits,
+        'total_spent': total_spent,
+        'total_deposited': total_deposited,
+        'total_sessions': total_sessions,
+    }
+    
+    return render(request, 'accounting/view_client.html', context)

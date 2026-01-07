@@ -238,3 +238,102 @@ msgstr "Чек успешно напечатан."
 msgid "Failed to print receipt: %(error)s"
 msgstr "Не удалось напечатать чек: %(error)s"
 
+msgid "Add new client"
+msgstr "Добавить нового клиента"
+
+msgid "Client name"
+msgstr "Имя клиента"
+
+msgid "Initial balance"
+msgstr "Начальный баланс"
+
+msgid "optional"
+msgstr "необязательно"
+
+msgid "Enter client full name"
+msgstr "Введите полное имя клиента"
+
+msgid "Add client"
+msgstr "Добавить клиента"
+
+msgid "Error: Client name is required."
+msgstr "Ошибка: Имя клиента обязательно."
+
+msgid "Error: A client with this name already exists."
+msgstr "Ошибка: Клиент с таким именем уже существует."
+
+msgid "Client %(client_name)s created successfully."
+msgstr "Клиент %(client_name)s успешно создан."
+
+msgid "An unexpected error occurred while creating client: %(error)s"
+msgstr "Произошла непредвиденная ошибка при создании клиента: %(error)s"
+
+msgid "Full name"
+msgstr "ФИО"
+
+msgid "Date of birth"
+msgstr "Дата рождения"
+
+msgid "Address"
+msgstr "Адрес"
+
+msgid "Phone"
+msgstr "Телефон"
+
+msgid "How did you hear about us?"
+msgstr "Откуда узнали о нашем центре?"
+
+msgid "Client type"
+msgstr "Тип клиента"
+
+msgid "Child"
+msgstr "Ребенок"
+
+msgid "Teenager"
+msgstr "Подросток"
+
+msgid "Adult"
+msgstr "Взрослый"
+
+msgid "Create client"
+msgstr "Создать клиента"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Client information"
+msgstr "Информация о клиенте"
+
+msgid "Back to dashboard"
+msgstr "Вернуться на панель управления"
+
+msgid "Recent transactions"
+msgstr "Последние транзакции"
+
+msgid "Recent deposits"
+msgstr "Последние пополнения"
+
+msgid "Total sessions"
+msgstr "Всего сеансов"
+
+msgid "Total spent"
+msgstr "Всего потрачено"
+
+msgid "Total deposited"
+msgstr "Всего пополнено"
+
+msgid "Created at"
+msgstr "Дата создания"
+
+msgid "View receipt"
+msgstr "Просмотр чека"
+
+msgid "Enter client address"
+msgstr "Введите адрес клиента"
+
+msgid "Enter phone number"
+msgstr "Введите номер телефона"
+
+msgid "Enter referral source"
+msgstr "Введите источник информации"
+

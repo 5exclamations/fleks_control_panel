@@ -12,4 +12,7 @@ urlpatterns = [
     path('transactions/<int:transaction_id>/view-receipt/pdf/', views.view_receipt, {'format': 'pdf'}, name='view_receipt_pdf'),
     path('transactions/<int:transaction_id>/download-receipt/', views.download_receipt_pdf, name='download_receipt_pdf'),
 
+    path('clients/create/', views.create_client, name='create_client'),
+    path('clients/<int:client_id>/', views.view_client, name='view_client'),
+
 ]

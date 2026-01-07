@@ -3,6 +3,12 @@ from django.contrib.auth.models import User
 
 
 class Client(models.Model):
+    CLIENT_TYPE_CHOICES = [
+        ('child', 'Ребенок'),
+        ('teenager', 'Подросток'),
+        ('adult', 'Взрослый'),
+    ]
+
     # Django user
     user = models.OneToOneField(
         User,
@@ -11,14 +17,35 @@ class Client(models.Model):
         null=True, blank=True
     )
 
-    full_name = models.CharField(max_length=200)
-
+    full_name = models.CharField(max_length=200, verbose_name="ФИО")
+    
+    date_of_birth = models.DateField(null=True, blank=True, verbose_name="Дата рождения")
+    
+    address = models.TextField(blank=True, verbose_name="Адрес")
+    
+    phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")
+    
+    referral_source = models.CharField(
+        max_length=200, 
+        blank=True, 
+        verbose_name="Откуда узнал о центре"
+    )
+    
+    client_type = models.CharField(
+        max_length=20,
+        choices=CLIENT_TYPE_CHOICES,
+        default='adult',
+        verbose_name="Тип клиента"
+    )
 
     balance = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0.00
     )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def __str__(self):
         return self.full_name

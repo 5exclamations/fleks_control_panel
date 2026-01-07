@@ -13,6 +13,11 @@
             {% endfor %}
         </ul>
     {% endif %}
+    
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'create_client' %}" style="background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: bold;">{% trans "Add new client" %}</a>
+    </div>
+    
     <div class="form-container">
         <div class="form-card" id="session-form">
             <h2>{% trans "Process Session" %}</h2>
@@ -29,6 +34,7 @@
                             <option value="{{ client.id }}">{{ client.full_name }} ({% trans "Balance" %}: {{ client.balance }})</option>
                         {% endfor %}
                     </select>
+                    <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
                 </div>
 
                 <div>
@@ -64,6 +70,7 @@
                             <option value="{{ client.id }}">{{ client.full_name }}</option>
                         {% endfor %}
                     </select>
+                    <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
                 </div>
 
                 <div>
@@ -94,7 +101,7 @@
             {% for tx in recent_transactions %}
                 <tr>
                     <td>{{ tx.date_time|date:"d.m.Y H:i" }}</td>
-                    <td>{{ tx.client.full_name }}</td>
+                    <td><a href="{% url 'view_client' tx.client.id %}" style="color: #007bff; text-decoration: none;">{{ tx.client.full_name }}</a></td>
                     <td>{{ tx.worker.user.username }}</td>
                     <td>{{ tx.amount }}</td>
                     <td>

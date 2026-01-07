@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Client information" %}: {{ client.full_name }}{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'dashboard' %}" style="color: #007bff; text-decoration: none;">← {% trans "Back to dashboard" %}</a>
+    </div>
+
+    <h1>{% trans "Client information" %}</h1>
+
+    <div class="form-card" style="max-width: 800px;">
+        <h2>{{ client.full_name }}</h2>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <div>
+                <strong>{% trans "Full name" %}:</strong>
+                <p>{{ client.full_name }}</p>
+            </div>
+
+            {% if client.client_type %}
+            <div>
+                <strong>{% trans "Client type" %}:</strong>
+                <p>
+                    {% if client.client_type == 'child' %}
+                        {% trans "Child" %}
+                    {% elif client.client_type == 'teenager' %}
+                        {% trans "Teenager" %}
+                    {% else %}
+                        {% trans "Adult" %}
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+
+            {% if client.date_of_birth %}
+            <div>
+                <strong>{% trans "Date of birth" %}:</strong>
+                <p>{{ client.date_of_birth|date:"d.m.Y" }}</p>
+            </div>
+            {% endif %}
+
+            {% if client.phone %}
+            <div>
+                <strong>{% trans "Phone" %}:</strong>
+                <p>{{ client.phone }}</p>
+            </div>
+            {% endif %}
+
+            {% if client.address %}
+            <div style="grid-column: 1 / -1;">
+                <strong>{% trans "Address" %}:</strong>
+                <p>{{ client.address }}</p>
+            </div>
+            {% endif %}
+
+            {% if client.referral_source %}
+            <div style="grid-column: 1 / -1;">
+                <strong>{% trans "How did you hear about us?" %}:</strong>
+                <p>{{ client.referral_source }}</p>
+            </div>
+            {% endif %}
+
+            <div>
+                <strong>{% trans "Balance" %}:</strong>
+                <p style="font-size: 1.2em; font-weight: bold; color: #28a745;">{{ client.balance }} AZN</p>
+            </div>
+
+            <div>
+                <strong>{% trans "Total sessions" %}:</strong>
+                <p>{{ total_sessions }}</p>
+            </div>
+
+            <div>
+                <strong>{% trans "Total spent" %}:</strong>
+                <p>{{ total_spent }} AZN</p>
+            </div>
+
+            <div>
+                <strong>{% trans "Total deposited" %}:</strong>
+                <p>{{ total_deposited }} AZN</p>
+            </div>
+
+            <div>
+                <strong>{% trans "Created at" %}:</strong>
+                <p>{{ client.created_at|date:"d.m.Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if recent_transactions %}
+    <div class="form-card" style="max-width: 800px; margin-top: 20px;">
+        <h3>{% trans "Recent transactions" %}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Date/time" %}</th>
+                    <th>{% trans "Worker" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in recent_transactions %}
+                <tr>
+                    <td>{{ tx.date_time|date:"d.m.Y H:i" }}</td>
+                    <td>{{ tx.worker.user.username }}</td>
+                    <td>{{ tx.amount }} AZN</td>
+                    <td>
+                        <a href="{% url 'view_receipt' tx.id %}" style="background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px;">{% trans "View receipt" %}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if recent_deposits %}
+    <div class="form-card" style="max-width: 800px; margin-top: 20px;">
+        <h3>{% trans "Recent deposits" %}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Date/time" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deposit in recent_deposits %}
+                <tr>
+                    <td>{{ deposit.date_time|date:"d.m.Y H:i" }}</td>
+                    <td>{{ deposit.amount }} AZN</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+{% endblock %}
+

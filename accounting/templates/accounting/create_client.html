@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Add new client" %}{% endblock %}
+
+{% block content %}
+    <h1>{% trans "Add new client" %}</h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="form-card" style="max-width: 600px; margin: 0 auto;">
+        <form method="POST" action="{% url 'create_client' %}">
+            {% csrf_token %}
+
+            <div>
+                <label for="full_name">{% trans "Full name" %} <span style="color: red;">*</span>:</label>
+                <input type="text" id="full_name" name="full_name" required maxlength="200" 
+                       value="{{ form_data.full_name|default:'' }}" 
+                       placeholder="{% trans 'Enter client full name' %}">
+            </div>
+
+            <div>
+                <label for="date_of_birth">{% trans "Date of birth" %}:</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" 
+                       value="{{ form_data.date_of_birth|default:'' }}">
+            </div>
+
+            <div>
+                <label for="address">{% trans "Address" %}:</label>
+                <textarea id="address" name="address" rows="3" 
+                          placeholder="{% trans 'Enter client address' %}">{{ form_data.address|default:'' }}</textarea>
+            </div>
+
+            <div>
+                <label for="phone">{% trans "Phone" %}:</label>
+                <input type="tel" id="phone" name="phone" maxlength="20" 
+                       value="{{ form_data.phone|default:'' }}" 
+                       placeholder="{% trans 'Enter phone number' %}">
+            </div>
+
+            <div>
+                <label for="referral_source">{% trans "How did you hear about us?" %}:</label>
+                <input type="text" id="referral_source" name="referral_source" maxlength="200" 
+                       value="{{ form_data.referral_source|default:'' }}" 
+                       placeholder="{% trans 'Enter referral source' %}">
+            </div>
+
+            <div>
+                <label for="client_type">{% trans "Client type" %}:</label>
+                <select id="client_type" name="client_type" required>
+                    {% for value, label in client_types %}
+                        <option value="{{ value }}" {% if form_data.client_type == value or not form_data and value == 'adult' %}selected{% endif %}>
+                            {% if value == 'child' %}{% trans "Child" %}{% elif value == 'teenager' %}{% trans "Teenager" %}{% else %}{% trans "Adult" %}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="initial_balance">{% trans "Initial balance" %}:</label>
+                <input type="number" id="initial_balance" name="initial_balance" step="0.01" 
+                       value="{{ form_data.initial_balance|default:'0.00' }}" min="0">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit">{% trans "Create client" %}</button>
+                <a href="{% url 'dashboard' %}" style="background: #6c757d; color: white; padding: 12px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+

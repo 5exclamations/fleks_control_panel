@@ -238,3 +238,102 @@ msgstr "Çek uğurla çap edildi."
 msgid "Failed to print receipt: %(error)s"
 msgstr "Çek çap edilə bilmədi: %(error)s"
 
+msgid "Add new client"
+msgstr "Yeni müştəri əlavə et"
+
+msgid "Client name"
+msgstr "Müştəri adı"
+
+msgid "Initial balance"
+msgstr "İlkin balans"
+
+msgid "optional"
+msgstr "istəyə bağlı"
+
+msgid "Enter client full name"
+msgstr "Müştərinin tam adını daxil edin"
+
+msgid "Add client"
+msgstr "Müştəri əlavə et"
+
+msgid "Error: Client name is required."
+msgstr "Xəta: Müştəri adı tələb olunur."
+
+msgid "Error: A client with this name already exists."
+msgstr "Xəta: Bu adlı müştəri artıq mövcuddur."
+
+msgid "Client %(client_name)s created successfully."
+msgstr "Müştəri %(client_name)s uğurla yaradıldı."
+
+msgid "An unexpected error occurred while creating client: %(error)s"
+msgstr "Müştəri yaradılarkən gözlənilməz xəta baş verdi: %(error)s"
+
+msgid "Full name"
+msgstr "Tam ad"
+
+msgid "Date of birth"
+msgstr "Doğum tarixi"
+
+msgid "Address"
+msgstr "Ünvan"
+
+msgid "Phone"
+msgstr "Telefon"
+
+msgid "How did you hear about us?"
+msgstr "Mərkəzimiz haqqında haradan eşitdiniz?"
+
+msgid "Client type"
+msgstr "Müştəri tipi"
+
+msgid "Child"
+msgstr "Uşaq"
+
+msgid "Teenager"
+msgstr "Gənc"
+
+msgid "Adult"
+msgstr "Böyük"
+
+msgid "Create client"
+msgstr "Müştəri yarat"
+
+msgid "Cancel"
+msgstr "Ləğv et"
+
+msgid "Client information"
+msgstr "Müştəri məlumatları"
+
+msgid "Back to dashboard"
+msgstr "İdarəetmə panelinə qayıt"
+
+msgid "Recent transactions"
+msgstr "Son əməliyyatlar"
+
+msgid "Recent deposits"
+msgstr "Son artımlar"
+
+msgid "Total sessions"
+msgstr "Ümumi sessiyalar"
+
+msgid "Total spent"
+msgstr "Ümumi xərclənmiş"
+
+msgid "Total deposited"
+msgstr "Ümumi artırılmış"
+
+msgid "Created at"
+msgstr "Yaradılma tarixi"
+
+msgid "View receipt"
+msgstr "Çekə bax"
+
+msgid "Enter client address"
+msgstr "Müştəri ünvanını daxil edin"
+
+msgid "Enter phone number"
+msgstr "Telefon nömrəsini daxil edin"
+
+msgid "Enter referral source"
+msgstr "Məlumat mənbəsini daxil edin"
+
