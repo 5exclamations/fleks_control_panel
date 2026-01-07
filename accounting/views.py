@@ -327,12 +327,12 @@ def reports(request):
 @user_passes_test(is_staff_user, login_url='/admin/login/')
 def print_receipt(request, transaction_id):
     """
-    Печатает чек на принтер
+    Печатает чек на физический принтер (если настроен)
     """
     transaction_record = get_object_or_404(Transaction.objects.select_related('client', 'worker__user'), id=transaction_id)
     try:
         print_receipt_for_session(transaction_record)
-        messages.success(request, gettext("Receipt printed successfully."))
+        messages.success(request, gettext("Receipt sent to printer successfully."))
     except Exception as e:
         messages.error(request, gettext("Failed to print receipt: %(error)s") % {'error': e})
     next_url = request.META.get('HTTP_REFERER') or 'dashboard'

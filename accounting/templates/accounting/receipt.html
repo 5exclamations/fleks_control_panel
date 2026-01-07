@@ -161,9 +161,18 @@
     
     <div class="action-buttons no-print">
         <button onclick="window.print()">{% trans "Print" %}</button>
-        <a href="{% url 'download_receipt_pdf' transaction.id %}">{% trans "Download PDF" %}</a>
-        <a href="{% url 'print_receipt' transaction.id %}" class="btn-secondary">{% trans "Print to printer" %}</a>
         <a href="{% url 'dashboard' %}" class="btn-secondary">{% trans "Back" %}</a>
     </div>
+    
+    <script>
+        // Автоматически открыть диалог печати если есть параметр ?print=1 в URL
+        if (window.location.search.includes('print=1')) {
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                }, 250);
+            };
+        }
+    </script>
 </body>
 </html>
