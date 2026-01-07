@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чек №{{ transaction.id }}</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none; }
+            .receipt-container { 
+                box-shadow: none;
+                border: none;
+                padding: 10mm;
+            }
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .receipt-container {
+            max-width: 80mm;
+            margin: 0 auto;
+            background: white;
+            padding: 15mm;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .receipt-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        
+        .receipt-section {
+            margin: 10px 0;
+            padding: 5px 0;
+        }
+        
+        .receipt-line {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+        
+        .receipt-item {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .receipt-label {
+            font-weight: bold;
+        }
+        
+        .receipt-amount {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .receipt-footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 11px;
+        }
+        
+        .receipt-number {
+            font-size: 10px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+        }
+        
+        .action-buttons button, .action-buttons a {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .action-buttons button:hover, .action-buttons a:hover {
+            background: #0056b3;
+        }
+        
+        .action-buttons .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .action-buttons .btn-secondary:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt-header">
+            ПСИХОЛОГИЧЕСКИЙ ЦЕНТР
+        </div>
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">Дата:</span> {{ date_str }}
+            </div>
+        </div>
+        
+        <div class="receipt-line"></div>
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">Клиент:</span> {{ transaction.client.full_name }}
+            </div>
+            <div class="receipt-item">
+                <span class="receipt-label">Сотрудник:</span> {{ worker_name }}
+            </div>
+        </div>
+        
+        <div class="receipt-line"></div>
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">Услуга:</span> Сеанс психолога
+            </div>
+            <div class="receipt-amount">
+                <span class="receipt-label">Сумма:</span> {{ transaction.amount }} AZN
+            </div>
+        </div>
+        
+        <div class="receipt-line"></div>
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">Баланс клиента:</span> {{ transaction.client.balance }} AZN
+            </div>
+        </div>
+        
+        <div class="receipt-line"></div>
+        
+        <div class="receipt-footer">
+            Спасибо за посещение!
+        </div>
+        
+        <div class="receipt-number">
+            № транзакции: {{ transaction.id }}
+        </div>
+    </div>
+    
+    <div class="action-buttons no-print">
+        <button onclick="window.print()">Печать</button>
+        <a href="{% url 'download_receipt_pdf' transaction.id %}">Скачать PDF</a>
+        <a href="{% url 'print_receipt' transaction.id %}" class="btn-secondary">Печать на принтер</a>
+        <a href="{% url 'dashboard' %}" class="btn-secondary">Назад</a>
+    </div>
+</body>
+</html>
+

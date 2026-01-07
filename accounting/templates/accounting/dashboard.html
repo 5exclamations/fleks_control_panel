@@ -104,10 +104,13 @@
                         {% endif %}
                     </td>
                     <td>
-                        <form method="post" action="{% url 'print_receipt' tx.id %}">
-                            {% csrf_token %}
-                            <button type="submit">Напечатать чек</button>
-                        </form>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{% url 'view_receipt' tx.id %}" style="background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px;">Просмотр</a>
+                            <form method="post" action="{% url 'print_receipt' tx.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: #28a745; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">Печать</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}

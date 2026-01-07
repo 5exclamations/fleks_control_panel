@@ -138,3 +138,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Настройки печати чеков
+# Для USB принтера на Linux: используйте путь к устройству, например '/dev/usb/lp0'
+# Для COM порта на Windows: укажите порт, например 'COM1', 'COM2' и т.д.
+# Для сетевого принтера: укажите IP адрес принтера
+# RECEIPT_PRINTER_PORT = 'COM1'  # Раскомментируйте и укажите порт для Windows
+# RECEIPT_PRINTER_IP = '192.168.1.100'  # Раскомментируйте и укажите IP для сетевого принтера

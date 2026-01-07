@@ -1,0 +1,226 @@
+"""
+Утилиты для генерации и печати чеков
+"""
+import os
+from io import BytesIO
+from django.http import HttpResponse
+from django.conf import settings
+from reportlab.lib.units import mm
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+
+def generate_pdf_receipt(transaction):
+    """
+    Генерирует PDF чек для транзакции
+    """
+    buffer = BytesIO()
+    
+    # Создаем PDF документ
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=(80*mm, 200*mm),  # Размер чека (80mm ширина, 200mm высота)
+        rightMargin=5*mm,
+        leftMargin=5*mm,
+        topMargin=5*mm,
+        bottomMargin=5*mm
+    )
+    
+    # Стили
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=14,
+        textColor=colors.black,
+        spaceAfter=6,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.black,
+        alignment=TA_LEFT,
+        fontName='Helvetica'
+    )
+    
+    center_style = ParagraphStyle(
+        'CustomCenter',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.black,
+        alignment=TA_CENTER,
+        fontName='Helvetica'
+    )
+    
+    # Содержимое чека
+    story = []
+    
+    # Заголовок
+    story.append(Paragraph("FLEKS", title_style))
+    story.append(Spacer(1, 3*mm))
+    
+    # Дата и время
+    date_str = transaction.date_time.strftime('%d.%m.%Y %H:%M:%S')
+    story.append(Paragraph(f"Tarix: {date_str}", normal_style))
+    story.append(Spacer(1, 2*mm))
+    
+    # Разделитель
+    story.append(Paragraph("─" * 30, center_style))
+    story.append(Spacer(1, 2*mm))
+    
+    # Информация о клиенте
+    story.append(Paragraph(f"<b>Müştəri:</b> {transaction.client.full_name}", normal_style))
+    story.append(Spacer(1, 1*mm))
+    
+    # Информация о сотруднике
+    worker_name = transaction.worker.user.get_full_name() or transaction.worker.user.username
+    story.append(Paragraph(f"<b>Сотрудник:</b> {worker_name}", normal_style))
+    story.append(Spacer(1, 2*mm))
+    
+    # Разделитель
+    story.append(Paragraph("─" * 30, center_style))
+    story.append(Spacer(1, 2*mm))
+    
+    # Услуга
+    story.append(Paragraph("<b>Услуга:</b> Сеанс психолога", normal_style))
+    story.append(Spacer(1, 1*mm))
+    
+    # Сумма
+    story.append(Paragraph(f"<b>Сумма:</b> {transaction.amount} AZN", normal_style))
+    story.append(Spacer(1, 2*mm))
+    
+    # Разделитель
+    story.append(Paragraph("─" * 30, center_style))
+    story.append(Spacer(1, 2*mm))
+    
+    # Баланс клиента
+    story.append(Paragraph(f"<b>Баланс клиента:</b> {transaction.client.balance} AZN", normal_style))
+    story.append(Spacer(1, 3*mm))
+    
+    # Разделитель
+    story.append(Paragraph("─" * 30, center_style))
+    story.append(Spacer(1, 3*mm))
+    
+    # Благодарность
+    story.append(Paragraph("Спасибо за посещение!", center_style))
+    story.append(Spacer(1, 2*mm))
+    
+    # Номер транзакции
+    story.append(Paragraph(f"№ транзакции: {transaction.id}", normal_style))
+    
+    # Собираем PDF
+    doc.build(story)
+    
+    # Получаем PDF данные
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    return pdf
+
+
+def print_to_thermal_printer(transaction, printer_path=None):
+    """
+    Печатает чек на термопринтере используя python-escpos
+    """
+    try:
+        from escpos.printer import Usb, Serial, Network, File
+        
+        # Определяем путь к принтеру
+        if printer_path is None:
+            # Пытаемся найти принтер автоматически
+            # Для USB принтера (Linux)
+            if os.path.exists('/dev/usb/lp0'):
+                printer = File('/dev/usb/lp0')
+            # Для Windows COM порт
+            elif os.name == 'nt':
+                # По умолчанию COM1, можно настроить в settings
+                com_port = getattr(settings, 'RECEIPT_PRINTER_PORT', 'COM1')
+                printer = Serial(com_port, baudrate=9600)
+            # Для сетевого принтера
+            elif hasattr(settings, 'RECEIPT_PRINTER_IP'):
+                printer = Network(settings.RECEIPT_PRINTER_IP)
+            else:
+                # Файловый вывод (для тестирования)
+                receipt_file = os.path.join(settings.BASE_DIR, 'receipts', f'receipt_{transaction.id}.txt')
+                os.makedirs(os.path.dirname(receipt_file), exist_ok=True)
+                printer = File(receipt_file)
+        else:
+            printer = File(printer_path)
+        
+        # Печать чека
+        printer.set(align='center', font='a', width=1, height=2)
+        printer.text("ПСИХОЛОГИЧЕСКИЙ ЦЕНТР\n")
+        printer.set(align='center', font='a', width=1, height=1)
+        printer.text("\n")
+        
+        date_str = transaction.date_time.strftime('%d.%m.%Y %H:%M:%S')
+        printer.set(align='left', font='a', width=1, height=1)
+        printer.text(f"Дата: {date_str}\n")
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.text(f"Müsteri: {transaction.client.full_name}\n")
+        worker_name = transaction.worker.user.get_full_name() or transaction.worker.user.username
+        printer.text(f"Emekdas: {worker_name}\n")
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.text("\n")
+        printer.set(align='left', font='a', width=2, height=2)
+        printer.text(f"Mebleg: {transaction.amount} AZN\n")
+        printer.set(align='left', font='a', width=1, height=1)
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.text(f"Balans: {transaction.client.balance} AZN\n")
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.set(align='center', font='a', width=1, height=1)
+        printer.text("Tesekkur edirik!\n\n")
+        printer.text(f"№ transaksiya: {transaction.id}\n\n")
+        
+        # Отрезка чека
+        printer.cut()
+        printer.close()
+        
+        return True
+        
+    except ImportError:
+        # Если библиотека не установлена, просто логируем
+        print(f"python-escpos не установлен. Чек не может быть напечатан на принтере.")
+        return False
+    except Exception as e:
+        print(f"Ошибка при печати на принтер: {e}")
+        return False
+
+
+def generate_receipt_response(transaction, format='pdf', request=None):
+    """
+    Генерирует HTTP ответ с чеком в указанном формате
+    """
+    if format == 'pdf':
+        pdf = generate_pdf_receipt(transaction)
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="receipt_{transaction.id}.pdf"'
+        return response
+    else:
+        # HTML формат для просмотра в браузере
+        from django.template.loader import render_to_string
+        from django.template import RequestContext
+        
+        context = {
+            'transaction': transaction,
+            'date_str': transaction.date_time.strftime('%d.%m.%Y %H:%M:%S'),
+            'worker_name': transaction.worker.user.get_full_name() or transaction.worker.user.username,
+        }
+        
+        if request:
+            html = render_to_string('accounting/receipt.html', context, request=request)
+        else:
+            html = render_to_string('accounting/receipt.html', context)
+            
+        return HttpResponse(html)
+

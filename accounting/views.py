@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
+from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response
 
 def deposit_funds(request, client_id, amount):
     try:
@@ -58,35 +59,40 @@ def process_session_payment(request, client_id, worker_id, session_cost):
         return HttpResponse(f"Server Error: {e}", status=500)
 
 def print_receipt_for_session(transaction_record):
-
-        receipt_data = f"""
-        *** ПСИХОЛОГИЧЕСКИЙ ЦЕНТР ***
-        Дата: {transaction_record.date_time.strftime('%Y-%m-%d %H:%M:%S')}
-        ---
-        Клиент: {transaction_record.client.full_name}
-        Сотрудник: {transaction_record.worker.user.get_full_name() or transaction_record.worker.user.username}
-        ---
-        Услуга: Сеанс психолога
-        Сумма: {transaction_record.amount}
-        ---
-        Баланс клиента: {transaction_record.client.balance}
-        ---
-        Спасибо!
-        """
-
-        # Sending to printer
-        # python-escpos
-        # printer = Escpos(device='/dev/usb/lp0')
-        # printer.text(receipt_data)
-        # printer.cut()
-
-        print("\n" + "=" * 40)
-        print("--- ПЕЧАТЬ ЧЕКА ---")
-        print(receipt_data)
-        print("=" * 40 + "\n")
-
+    """
+    Печатает чек для транзакции на принтер и обновляет статус
+    """
+    try:
+        # Пытаемся напечатать на термопринтер
+        print_success = print_to_thermal_printer(transaction_record)
+        
+        if not print_success:
+            # Если печать на принтер не удалась, выводим в консоль для отладки
+            receipt_data = f"""
+*** ПСИХОЛОГИЧЕСКИЙ ЦЕНТР ***
+Дата: {transaction_record.date_time.strftime('%Y-%m-%d %H:%M:%S')}
+---
+Клиент: {transaction_record.client.full_name}
+Сотрудник: {transaction_record.worker.user.get_full_name() or transaction_record.worker.user.username}
+---
+Услуга: Сеанс психолога
+Сумма: {transaction_record.amount} AZN
+---
+Баланс клиента: {transaction_record.client.balance} AZN
+---
+Спасибо!
+"""
+            print("\n" + "=" * 40)
+            print("--- ПЕЧАТЬ ЧЕКА ---")
+            print(receipt_data)
+            print("=" * 40 + "\n")
+        
         transaction_record.receipt_printed = True
         transaction_record.save()
+        
+    except Exception as e:
+        print(f"Ошибка при печати чека: {e}")
+        # Не помечаем как напечатанный, если произошла ошибка
 
 
 def is_staff_user(user):
@@ -311,6 +317,9 @@ def reports(request):
 @login_required(login_url='/admin/login/')
 @user_passes_test(is_staff_user, login_url='/admin/login/')
 def print_receipt(request, transaction_id):
+    """
+    Печатает чек на принтер
+    """
     transaction_record = get_object_or_404(Transaction.objects.select_related('client', 'worker__user'), id=transaction_id)
     try:
         print_receipt_for_session(transaction_record)
@@ -319,3 +328,37 @@ def print_receipt(request, transaction_id):
         messages.error(request, f"Не удалось напечатать чек: {e}")
     next_url = request.META.get('HTTP_REFERER') or 'dashboard'
     return redirect(next_url)
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def view_receipt(request, transaction_id, format='html'):
+    """
+    Просмотр чека в браузере (HTML или PDF)
+    """
+    transaction_record = get_object_or_404(
+        Transaction.objects.select_related('client', 'worker__user'), 
+        id=transaction_id
+    )
+    
+    if format == 'pdf':
+        return generate_receipt_response(transaction_record, format='pdf', request=request)
+    else:
+        return generate_receipt_response(transaction_record, format='html', request=request)
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def download_receipt_pdf(request, transaction_id):
+    """
+    Скачивание чека в формате PDF
+    """
+    transaction_record = get_object_or_404(
+        Transaction.objects.select_related('client', 'worker__user'), 
+        id=transaction_id
+    )
+    
+    pdf = generate_pdf_receipt(transaction_record)
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="receipt_{transaction_record.id}.pdf"'
+    return response
