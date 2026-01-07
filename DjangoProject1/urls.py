@@ -17,8 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [
+    path('i18n/setlang/', include('django.conf.urls.i18n')),  # Переключение языка
+]
+
+urlpatterns += i18n_patterns(
     # Admin Panel
     path('admin/', admin.site.urls),
 
@@ -26,4 +31,5 @@ urlpatterns = [
 
     # Root path
     path('', include('accounting.urls')),
-]
+    prefix_default_language=False,  # Не добавлять префикс для языка по умолчанию
+)

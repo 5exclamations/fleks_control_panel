@@ -1,9 +1,10 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чек №{{ transaction.id }}</title>
+    <title>{% trans "Receipt" %} №{{ transaction.id }}</title>
     <style>
         @media print {
             body { margin: 0; padding: 0; }
@@ -111,23 +112,12 @@
 <body>
     <div class="receipt-container">
         <div class="receipt-header">
-            ПСИХОЛОГИЧЕСКИЙ ЦЕНТР
+            FLEKS
         </div>
         
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">Дата:</span> {{ date_str }}
-            </div>
-        </div>
-        
-        <div class="receipt-line"></div>
-        
-        <div class="receipt-section">
-            <div class="receipt-item">
-                <span class="receipt-label">Клиент:</span> {{ transaction.client.full_name }}
-            </div>
-            <div class="receipt-item">
-                <span class="receipt-label">Сотрудник:</span> {{ worker_name }}
+                <span class="receipt-label">{% trans "Date" %}:</span> {{ date_str }}
             </div>
         </div>
         
@@ -135,10 +125,10 @@
         
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">Услуга:</span> Сеанс психолога
+                <span class="receipt-label">{% trans "Client" %}:</span> {{ transaction.client.full_name }}
             </div>
-            <div class="receipt-amount">
-                <span class="receipt-label">Сумма:</span> {{ transaction.amount }} AZN
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Worker" %}:</span> {{ worker_name }}
             </div>
         </div>
         
@@ -146,27 +136,34 @@
         
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">Баланс клиента:</span> {{ transaction.client.balance }} AZN
+                <span class="receipt-label">{% trans "Amount" %}:</span> {{ transaction.amount }} AZN
+            </div>
+        </div>
+        
+        <div class="receipt-line"></div>
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Balance" %}:</span> {{ transaction.client.balance }} AZN
             </div>
         </div>
         
         <div class="receipt-line"></div>
         
         <div class="receipt-footer">
-            Спасибо за посещение!
+            {% trans "Thank you!" %}
         </div>
         
         <div class="receipt-number">
-            № транзакции: {{ transaction.id }}
+            {% trans "Transaction #" %}: {{ transaction.id }}
         </div>
     </div>
     
     <div class="action-buttons no-print">
-        <button onclick="window.print()">Печать</button>
-        <a href="{% url 'download_receipt_pdf' transaction.id %}">Скачать PDF</a>
-        <a href="{% url 'print_receipt' transaction.id %}" class="btn-secondary">Печать на принтер</a>
-        <a href="{% url 'dashboard' %}" class="btn-secondary">Назад</a>
+        <button onclick="window.print()">{% trans "Print" %}</button>
+        <a href="{% url 'download_receipt_pdf' transaction.id %}">{% trans "Download PDF" %}</a>
+        <a href="{% url 'print_receipt' transaction.id %}" class="btn-secondary">{% trans "Print to printer" %}</a>
+        <a href="{% url 'dashboard' %}" class="btn-secondary">{% trans "Back" %}</a>
     </div>
 </body>
 </html>
-

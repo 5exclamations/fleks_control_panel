@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Панель управления{% endblock %}
+{% block title %}{% trans "Control Panel" %}{% endblock %}
 
 {% block content %}
-    <h1>Панель управления Психологического Центра</h1>
+    <h1>{% trans "Control Panel" %}</h1>
 
     {% if messages %}
         <ul class="messages">
@@ -14,26 +15,26 @@
     {% endif %}
     <div class="form-container">
         <div class="form-card" id="session-form">
-            <h2>Провести сеанс</h2>
+            <h2>{% trans "Process Session" %}</h2>
             <form action="{% url 'dashboard' %}" method="POST">
                 {% csrf_token %}
 
                 <input type="hidden" name="action_type" value="process_session">
 
                 <div>
-                    <label for="client_session">Клиент:</label>
+                    <label for="client_session">{% trans "Client" %}:</label>
                     <select id="client_session" name="client_id" required>
-                        <option value="">--- Выберите клиента ---</option>
+                        <option value="">--- {% trans "Select client" %} ---</option>
                         {% for client in clients %}
-                            <option value="{{ client.id }}">{{ client.full_name }} (Баланс: {{ client.balance }})</option>
+                            <option value="{{ client.id }}">{{ client.full_name }} ({% trans "Balance" %}: {{ client.balance }})</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div>
-                    <label for="worker_session">Сотрудник:</label>
+                    <label for="worker_session">{% trans "Worker" %}:</label>
                     <select id="worker_session" name="worker_id" required>
-                        <option value="">--- Выберите сотрудника ---</option>
+                        <option value="">--- {% trans "Select worker" %} ---</option>
                         {% for worker in workers %}
                             <option value="{{ worker.id }}">{{ worker.user.username }}</option>
                         {% endfor %}
@@ -41,24 +42,24 @@
                 </div>
 
                 <div>
-                    <label for="session_cost">Стоимость сеанса:</label>
+                    <label for="session_cost">{% trans "Session cost" %}:</label>
                     <input type="number" id="session_cost" name="session_cost" step="0.01" required>
                 </div>
 
-                <button type="submit">Провести оплату и напечатать чек</button>
+                <button type="submit">{% trans "Process payment and print receipt" %}</button>
             </form>
         </div>
 
         <div class="form-card">
-            <h2>Пополнить баланс клиента</h2>
+            <h2>{% trans "Top up client balance" %}</h2>
             <form action="{% url 'dashboard' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action_type" value="deposit">
 
                 <div>
-                    <label for="client_deposit">Клиент:</label>
+                    <label for="client_deposit">{% trans "Client" %}:</label>
                     <select id="client_deposit" name="client_id" required>
-                        <option value="">--- Выберите клиента ---</option>
+                        <option value="">--- {% trans "Select client" %} ---</option>
                         {% for client in clients %}
                             <option value="{{ client.id }}">{{ client.full_name }}</option>
                         {% endfor %}
@@ -66,27 +67,27 @@
                 </div>
 
                 <div>
-                    <label for="amount">Сумма пополнения:</label>
+                    <label for="amount">{% trans "Top-up amount" %}:</label>
                     <input type="number" id="amount" name="deposit_amount" step="0.01" required>
                 </div>
 
-                <button type="submit">Пополнить</button>
+                <button type="submit">{% trans "Top up" %}</button>
             </form>
         </div>
 
     </div>
     <div class="form-card">
-        <h2>Недавние операции (сеансы)</h2>
+        <h2>{% trans "Recent transactions (sessions)" %}</h2>
         {% if recent_transactions %}
         <table>
             <thead>
                 <tr>
-                    <th>Дата/время</th>
-                    <th>Клиент</th>
-                    <th>Сотрудник</th>
-                    <th>Сумма</th>
-                    <th>Статус чека</th>
-                    <th>Действия</th>
+                    <th>{% trans "Date/time" %}</th>
+                    <th>{% trans "Client" %}</th>
+                    <th>{% trans "Worker" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Receipt status" %}</th>
+                    <th>{% trans "Actions" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -98,17 +99,17 @@
                     <td>{{ tx.amount }}</td>
                     <td>
                         {% if tx.receipt_printed %}
-                            Распечатан
+                            {% trans "Printed" %}
                         {% else %}
-                            Не распечатан
+                            {% trans "Not printed" %}
                         {% endif %}
                     </td>
                     <td>
                         <div style="display: flex; gap: 5px;">
-                            <a href="{% url 'view_receipt' tx.id %}" style="background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px;">Просмотр</a>
+                            <a href="{% url 'view_receipt' tx.id %}" style="background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px;">{% trans "View" %}</a>
                             <form method="post" action="{% url 'print_receipt' tx.id %}" style="display: inline;">
                                 {% csrf_token %}
-                                <button type="submit" style="background: #28a745; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">Печать</button>
+                                <button type="submit" style="background: #28a745; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">{% trans "Print" %}</button>
                             </form>
                         </div>
                     </td>
@@ -117,7 +118,7 @@
             </tbody>
         </table>
         {% else %}
-            <p>Пока нет транзакций.</p>
+            <p>{% trans "No transactions yet." %}</p>
         {% endif %}
     </div>
 {% endblock %}

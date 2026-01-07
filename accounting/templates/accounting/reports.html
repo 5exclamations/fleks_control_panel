@@ -1,72 +1,73 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Финансовая Отчетность{% endblock %}
+{% block title %}{% trans "Financial Reports" %}{% endblock %}
 
 {% block content %}
-    <h1>Финансовая Отчетность</h1>
+    <h1>{% trans "Financial Reports" %}</h1>
 
     <div class="filter-section">
-        <h2>Фильтр</h2>
+        <h2>{% trans "Filter" %}</h2>
         <div class="filter-buttons">
-            <a href="{% url 'reports' %}">За все время</a>
-            <a href="{% url 'reports' %}?preset=today">За сегодня</a>
-            <a href="{% url 'reports' %}?preset=week">За неделю</a>
-            <a href="{% url 'reports' %}?preset=month">За месяц</a>
+            <a href="{% url 'reports' %}">{% trans "All time" %}</a>
+            <a href="{% url 'reports' %}?preset=today">{% trans "Today" %}</a>
+            <a href="{% url 'reports' %}?preset=week">{% trans "This week" %}</a>
+            <a href="{% url 'reports' %}?preset=month">{% trans "This month" %}</a>
         </div>
         <form method="GET" action="{% url 'reports' %}" class="custom-filter">
             <div>
-                <label for="start_date">Начальная дата:</label>
+                <label for="start_date">{% trans "Start date" %}:</label>
                 <input type="date" id="start_date" name="start_date" required value="{{ start_date_input }}">
             </div>
             <div>
-                <label for="end_date">Конечная дата:</label>
+                <label for="end_date">{% trans "End date" %}:</label>
                 <input type="date" id="end_date" name="end_date" required value="{{ end_date_input }}">
             </div>
             <div>
-                <label for="client_id">Клиент:</label>
+                <label for="client_id">{% trans "Client" %}:</label>
                 <select id="client_id" name="client_id">
-                    <option value="">Все клиенты</option>
+                    <option value="">{% trans "All clients" %}</option>
                     {% for c in clients %}
                         <option value="{{ c.id }}" {% if selected_client_id == c.id|stringformat:'s' %}selected{% endif %}>{{ c.full_name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div>
-                <label for="worker_id">Сотрудник:</label>
+                <label for="worker_id">{% trans "Worker" %}:</label>
                 <select id="worker_id" name="worker_id">
-                    <option value="">Все сотрудники</option>
+                    <option value="">{% trans "All workers" %}</option>
                     {% for w in workers %}
                         <option value="{{ w.id }}" {% if selected_worker_id == w.id|stringformat:'s' %}selected{% endif %}>{{ w.user.username }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit">Показать период</button>
+            <button type="submit">{% trans "Show period" %}</button>
         </form>
     </div>
 
-    <h2>Сводка <small>({{ current_filter_desc }})</small></h2>
+    <h2>{% trans "Summary" %} <small>({{ current_filter_desc }})</small></h2>
 
     <div class="summary-grid">
         <div class="summary-card summary-income">
-            <h3>Общий доход (Сеансы)</h3>
+            <h3>{% trans "Total income (Sessions)" %}</h3>
             {{ total_income }} AZN.
         </div>
         <div class="summary-card summary-deposit">
-            <h3>Пополнения клиентов</h3>
+            <h3>{% trans "Client top-ups" %}</h3>
             {{ total_deposits }} AZN.
         </div>
     </div>
 
-    <h3>Детализация операций</h3>
+    <h3>{% trans "Operation details" %}</h3>
 
     {% if unified_log %}
         <table>
             <thead>
                 <tr>
-                    <th>Дата и время</th>
-                    <th>Тип операции</th>
-                    <th>Описание</th>
-                    <th>Приход (в кассу)</th>
+                    <th>{% trans "Date and time" %}</th>
+                    <th>{% trans "Operation type" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th>{% trans "Income (to cash)" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -90,7 +91,7 @@
             </tbody>
         </table>
     {% else %}
-        <p>Операции за выбранный период не найдены.</p>
+        <p>{% trans "No operations found for the selected period." %}</p>
     {% endif %}
 
-    {% endblock %}
+{% endblock %}

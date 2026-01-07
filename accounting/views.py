@@ -4,6 +4,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _, gettext
 from datetime import datetime, timedelta
 from decimal import Decimal
 from .models import Client, Worker, Transaction, ClientDeposit
@@ -114,7 +115,7 @@ def dashboard(request):
                 amount_str = request.POST.get('deposit_amount')
 
                 if not client_id or not amount_str or Decimal(amount_str) <= 0:
-                    messages.error(request, "Ошибка: Клиент не выбран или сумма пополнения некорректна.")
+                    messages.error(request, gettext("Error: Client not selected or top-up amount is incorrect."))
                     return redirect('dashboard')
 
                 client = Client.objects.get(id=client_id)
@@ -125,13 +126,16 @@ def dashboard(request):
                     client.save()
                     ClientDeposit.objects.create(client=client, amount=amount)
 
-                messages.success(request, f"Баланс клиента {client.full_name} успешно пополнен на {amount}.")
+                messages.success(request, gettext("Client %(client_name)s balance successfully topped up by %(amount)s.") % {
+                    'client_name': client.full_name,
+                    'amount': amount
+                })
 
             except Client.DoesNotExist:
-                messages.error(request, "Ошибка: Клиент не найден.")
+                messages.error(request, gettext("Error: Client not found."))
             except Exception as e:
                 print(f"ОШИБКА ДЕПОЗИТА: {e}")
-                messages.error(request, f"Произошла непредвиденная ошибка при пополнении: {e}")
+                messages.error(request, gettext("An unexpected error occurred during top-up: %(error)s") % {'error': e})
 
         elif action_type == 'process_session':
             try:
@@ -140,7 +144,7 @@ def dashboard(request):
                 cost_str = request.POST.get('session_cost')
 
                 if not client_id or not worker_id or not cost_str or Decimal(cost_str) <= 0:
-                    messages.error(request, "Ошибка сеанса: Данные некорректны.")
+                    messages.error(request, gettext("Session error: Data is incorrect."))
                     return redirect('dashboard')
 
                 session_cost = Decimal(cost_str)
@@ -150,7 +154,9 @@ def dashboard(request):
                     worker = Worker.objects.select_for_update().get(id=worker_id)
 
                     if client.balance < session_cost:
-                        messages.error(request, f"Ошибка: Недостаточно средств на балансе клиента {client.full_name}.")
+                        messages.error(request, gettext("Error: Client %(client_name)s has insufficient funds.") % {
+                            'client_name': client.full_name
+                        })
                         return redirect('dashboard')
 
                     client.balance -= session_cost
@@ -164,15 +170,15 @@ def dashboard(request):
                         receipt_printed=False
                     )
 
-                    messages.success(request, "Оплата сеанса прошла успешно.")
+                    messages.success(request, gettext("Session payment processed successfully."))
                     print_receipt_for_session(transaction_record)
 
             except Client.DoesNotExist:
-                messages.error(request, "Ошибка: Клиент не найден.")
+                messages.error(request, gettext("Error: Client not found."))
             except Worker.DoesNotExist:
-                messages.error(request, "Ошибка: Сотрудник не найден.")
+                messages.error(request, gettext("Error: Worker not found."))
             except Exception as e:
-                messages.error(request, f"Произошла непредвиденная ошибка: {e}")
+                messages.error(request, gettext("An unexpected error occurred: %(error)s") % {'error': e})
 
 
         # temprorary removed this functionality
@@ -208,7 +214,7 @@ def dashboard(request):
 def reports(request):
     # all reports
     context = {
-        'current_filter_desc': 'за все время',
+        'current_filter_desc': gettext('all time'),
         'start_date_input': '',
         'end_date_input': '',
     }
@@ -223,15 +229,15 @@ def reports(request):
         if preset == 'today':
             start_date = now
             end_date = now
-            context['current_filter_desc'] = 'за сегодня'
+            context['current_filter_desc'] = gettext('today')
         elif preset == 'week':
             start_date = now - timedelta(days=now.weekday())
             end_date = now
-            context['current_filter_desc'] = 'за текущую неделю'
+            context['current_filter_desc'] = gettext('this week')
         elif preset == 'month':
             start_date = now.replace(day=1)
             end_date = now
-            context['current_filter_desc'] = 'за текущий месяц'
+            context['current_filter_desc'] = gettext('this month')
 
     custom_start_str = request.GET.get('start_date')
     custom_end_str = request.GET.get('end_date')
@@ -240,11 +246,14 @@ def reports(request):
         try:
             start_date = datetime.strptime(custom_start_str, '%Y-%m-%d').date()
             end_date = datetime.strptime(custom_end_str, '%Y-%m-%d').date()
-            context['current_filter_desc'] = f"с {start_date.strftime('%d.%m.%Y')} по {end_date.strftime('%d.%m.%Y')}"
+            context['current_filter_desc'] = gettext('from %(start)s to %(end)s') % {
+                'start': start_date.strftime('%d.%m.%Y'),
+                'end': end_date.strftime('%d.%m.%Y')
+            }
             context['start_date_input'] = custom_start_str
             context['end_date_input'] = custom_end_str
         except ValueError:
-            messages.error(request, "Неверный формат даты. Используйте ГГГГ-ММ-ДД.")
+            messages.error(request, gettext("Invalid date format. Use: YYYY-MM-DD."))
 
     # basic QuerySets
     transactions_qs = Transaction.objects.select_related('client', 'worker__user').all()
@@ -262,13 +271,13 @@ def reports(request):
             transactions_qs = transactions_qs.filter(client_id=int(selected_client_id))
             deposits_qs = deposits_qs.filter(client_id=int(selected_client_id))
         except ValueError:
-            messages.error(request, "Неверный идентификатор клиента.")
+            messages.error(request, gettext("Invalid client identifier."))
 
     if selected_worker_id:
         try:
             transactions_qs = transactions_qs.filter(worker_id=int(selected_worker_id))
         except ValueError:
-            messages.error(request, "Неверный идентификатор сотрудника.")
+            messages.error(request, gettext("Invalid worker identifier."))
 
     total_income = transactions_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_deposits = deposits_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
@@ -284,7 +293,7 @@ def reports(request):
     for tx in transactions_qs:
         unified_log.append({
             'date_time': tx.date_time,
-            'event_type': 'Сеанс (Доход)',
+            'event_type': gettext('Session (Income)'),
             'description': f"{tx.client.full_name} -> {tx.worker.user.username}",
             'amount_positive': tx.amount,
             'amount_negative': None,
@@ -294,8 +303,8 @@ def reports(request):
     for deposit in deposits_qs:
         unified_log.append({
             'date_time': deposit.date_time,
-            'event_type': 'Пополнение',
-            'description': f"Клиент: {deposit.client.full_name}",
+            'event_type': gettext('Top-up'),
+            'description': gettext('Client: %(client_name)s') % {'client_name': deposit.client.full_name},
             'amount_positive': deposit.amount,
             'amount_negative': None,
             'css_class': 'deposit'
@@ -323,9 +332,9 @@ def print_receipt(request, transaction_id):
     transaction_record = get_object_or_404(Transaction.objects.select_related('client', 'worker__user'), id=transaction_id)
     try:
         print_receipt_for_session(transaction_record)
-        messages.success(request, "Чек успешно напечатан.")
+        messages.success(request, gettext("Receipt printed successfully."))
     except Exception as e:
-        messages.error(request, f"Не удалось напечатать чек: {e}")
+        messages.error(request, gettext("Failed to print receipt: %(error)s") % {'error': e})
     next_url = request.META.get('HTTP_REFERER') or 'dashboard'
     return redirect(next_url)
 

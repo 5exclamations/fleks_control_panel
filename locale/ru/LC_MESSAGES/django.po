@@ -1,0 +1,240 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-07 16:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Control Panel"
+msgstr "Панель управления"
+
+msgid "Reports"
+msgstr "Отчетность"
+
+msgid "Django Admin"
+msgstr "Django Admin"
+
+msgid "Logout"
+msgstr "Выход"
+
+msgid "Process Session"
+msgstr "Провести сеанс"
+
+msgid "Client"
+msgstr "Клиент"
+
+msgid "Select client"
+msgstr "Выберите клиента"
+
+msgid "Balance"
+msgstr "Баланс"
+
+msgid "Worker"
+msgstr "Сотрудник"
+
+msgid "Select worker"
+msgstr "Выберите сотрудника"
+
+msgid "Session cost"
+msgstr "Стоимость сеанса"
+
+msgid "Process payment and print receipt"
+msgstr "Провести оплату и напечатать чек"
+
+msgid "Top up client balance"
+msgstr "Пополнить баланс клиента"
+
+msgid "Top-up amount"
+msgstr "Сумма пополнения"
+
+msgid "Top up"
+msgstr "Пополнить"
+
+msgid "Recent transactions (sessions)"
+msgstr "Недавние операции (сеансы)"
+
+msgid "Date/time"
+msgstr "Дата/время"
+
+msgid "Amount"
+msgstr "Сумма"
+
+msgid "Receipt status"
+msgstr "Статус чека"
+
+msgid "Actions"
+msgstr "Действия"
+
+msgid "Printed"
+msgstr "Распечатан"
+
+msgid "Not printed"
+msgstr "Не распечатан"
+
+msgid "View"
+msgstr "Просмотр"
+
+msgid "Print"
+msgstr "Печать"
+
+msgid "No transactions yet."
+msgstr "Пока нет транзакций."
+
+msgid "Financial Reports"
+msgstr "Финансовая Отчетность"
+
+msgid "Filter"
+msgstr "Фильтр"
+
+msgid "All time"
+msgstr "За все время"
+
+msgid "Today"
+msgstr "За сегодня"
+
+msgid "This week"
+msgstr "За неделю"
+
+msgid "This month"
+msgstr "За месяц"
+
+msgid "Start date"
+msgstr "Начальная дата"
+
+msgid "End date"
+msgstr "Конечная дата"
+
+msgid "All clients"
+msgstr "Все клиенты"
+
+msgid "All workers"
+msgstr "Все сотрудники"
+
+msgid "Show period"
+msgstr "Показать период"
+
+msgid "Summary"
+msgstr "Сводка"
+
+msgid "Total income (Sessions)"
+msgstr "Общий доход (Сеансы)"
+
+msgid "Client top-ups"
+msgstr "Пополнения клиентов"
+
+msgid "Operation details"
+msgstr "Детализация операций"
+
+msgid "Date and time"
+msgstr "Дата и время"
+
+msgid "Operation type"
+msgstr "Тип операции"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Income (to cash)"
+msgstr "Приход (в кассу)"
+
+msgid "No operations found for the selected period."
+msgstr "Операции за выбранный период не найдены."
+
+msgid "Receipt"
+msgstr "Чек"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "Thank you!"
+msgstr "Спасибо за посещение!"
+
+msgid "Transaction #"
+msgstr "№ транзакции"
+
+msgid "Download PDF"
+msgstr "Скачать PDF"
+
+msgid "Print to printer"
+msgstr "Печать на принтер"
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Error: Client not selected or top-up amount is incorrect."
+msgstr "Ошибка: Клиент не выбран или сумма пополнения некорректна."
+
+msgid "Client %(client_name)s balance successfully topped up by %(amount)s."
+msgstr "Баланс клиента %(client_name)s успешно пополнен на %(amount)s."
+
+msgid "Error: Client not found."
+msgstr "Ошибка: Клиент не найден."
+
+msgid "An unexpected error occurred during top-up: %(error)s"
+msgstr "Произошла непредвиденная ошибка при пополнении: %(error)s"
+
+msgid "Session error: Data is incorrect."
+msgstr "Ошибка сеанса: Данные некорректны."
+
+msgid "Error: Client %(client_name)s has insufficient funds."
+msgstr "Ошибка: Недостаточно средств на балансе клиента %(client_name)s."
+
+msgid "Session payment processed successfully."
+msgstr "Оплата сеанса прошла успешно."
+
+msgid "Error: Worker not found."
+msgstr "Ошибка: Сотрудник не найден."
+
+msgid "An unexpected error occurred: %(error)s"
+msgstr "Произошла непредвиденная ошибка: %(error)s"
+
+msgid "all time"
+msgstr "за все время"
+
+msgid "today"
+msgstr "за сегодня"
+
+msgid "this week"
+msgstr "за текущую неделю"
+
+msgid "this month"
+msgstr "за текущий месяц"
+
+msgid "from %(start)s to %(end)s"
+msgstr "с %(start)s по %(end)s"
+
+msgid "Invalid date format. Use: YYYY-MM-DD."
+msgstr "Неверный формат даты. Используйте ГГГГ-ММ-ДД."
+
+msgid "Invalid client identifier."
+msgstr "Неверный идентификатор клиента."
+
+msgid "Invalid worker identifier."
+msgstr "Неверный идентификатор сотрудника."
+
+msgid "Session (Income)"
+msgstr "Сеанс (Доход)"
+
+msgid "Top-up"
+msgstr "Пополнение"
+
+msgid "Client: %(client_name)s"
+msgstr "Клиент: %(client_name)s"
+
+msgid "Receipt printed successfully."
+msgstr "Чек успешно напечатан."
+
+msgid "Failed to print receipt: %(error)s"
+msgstr "Не удалось напечатать чек: %(error)s"
+

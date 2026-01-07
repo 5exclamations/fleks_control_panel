@@ -5,6 +5,7 @@ import os
 from io import BytesIO
 from django.http import HttpResponse
 from django.conf import settings
+from django.utils.translation import gettext as _
 from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -67,7 +68,7 @@ def generate_pdf_receipt(transaction):
     
     # Дата и время
     date_str = transaction.date_time.strftime('%d.%m.%Y %H:%M:%S')
-    story.append(Paragraph(f"Tarix: {date_str}", normal_style))
+    story.append(Paragraph(f"{_('Date')}: {date_str}", normal_style))
     story.append(Spacer(1, 2*mm))
     
     # Разделитель
@@ -75,24 +76,20 @@ def generate_pdf_receipt(transaction):
     story.append(Spacer(1, 2*mm))
     
     # Информация о клиенте
-    story.append(Paragraph(f"<b>Müştəri:</b> {transaction.client.full_name}", normal_style))
+    story.append(Paragraph(f"<b>{_('Client')}:</b> {transaction.client.full_name}", normal_style))
     story.append(Spacer(1, 1*mm))
     
     # Информация о сотруднике
     worker_name = transaction.worker.user.get_full_name() or transaction.worker.user.username
-    story.append(Paragraph(f"<b>Сотрудник:</b> {worker_name}", normal_style))
+    story.append(Paragraph(f"<b>{_('Worker')}:</b> {worker_name}", normal_style))
     story.append(Spacer(1, 2*mm))
     
     # Разделитель
     story.append(Paragraph("─" * 30, center_style))
     story.append(Spacer(1, 2*mm))
     
-    # Услуга
-    story.append(Paragraph("<b>Услуга:</b> Сеанс психолога", normal_style))
-    story.append(Spacer(1, 1*mm))
-    
     # Сумма
-    story.append(Paragraph(f"<b>Сумма:</b> {transaction.amount} AZN", normal_style))
+    story.append(Paragraph(f"<b>{_('Amount')}:</b> {transaction.amount} AZN", normal_style))
     story.append(Spacer(1, 2*mm))
     
     # Разделитель
@@ -100,7 +97,7 @@ def generate_pdf_receipt(transaction):
     story.append(Spacer(1, 2*mm))
     
     # Баланс клиента
-    story.append(Paragraph(f"<b>Баланс клиента:</b> {transaction.client.balance} AZN", normal_style))
+    story.append(Paragraph(f"<b>{_('Balance')}:</b> {transaction.client.balance} AZN", normal_style))
     story.append(Spacer(1, 3*mm))
     
     # Разделитель
@@ -108,11 +105,11 @@ def generate_pdf_receipt(transaction):
     story.append(Spacer(1, 3*mm))
     
     # Благодарность
-    story.append(Paragraph("Спасибо за посещение!", center_style))
+    story.append(Paragraph(_("Thank you!"), center_style))
     story.append(Spacer(1, 2*mm))
     
     # Номер транзакции
-    story.append(Paragraph(f"№ транзакции: {transaction.id}", normal_style))
+    story.append(Paragraph(f"{_('Transaction #')}: {transaction.id}", normal_style))
     
     # Собираем PDF
     doc.build(story)
@@ -155,32 +152,32 @@ def print_to_thermal_printer(transaction, printer_path=None):
         
         # Печать чека
         printer.set(align='center', font='a', width=1, height=2)
-        printer.text("ПСИХОЛОГИЧЕСКИЙ ЦЕНТР\n")
+        printer.text("FLEKS\n")
         printer.set(align='center', font='a', width=1, height=1)
         printer.text("\n")
         
         date_str = transaction.date_time.strftime('%d.%m.%Y %H:%M:%S')
         printer.set(align='left', font='a', width=1, height=1)
-        printer.text(f"Дата: {date_str}\n")
+        printer.text(f"{_('Date')}: {date_str}\n")
         printer.text("─" * 32 + "\n\n")
         
-        printer.text(f"Müsteri: {transaction.client.full_name}\n")
+        printer.text(f"{_('Client')}: {transaction.client.full_name}\n")
         worker_name = transaction.worker.user.get_full_name() or transaction.worker.user.username
-        printer.text(f"Emekdas: {worker_name}\n")
+        printer.text(f"{_('Worker')}: {worker_name}\n")
         printer.text("─" * 32 + "\n\n")
         
         printer.text("\n")
         printer.set(align='left', font='a', width=2, height=2)
-        printer.text(f"Mebleg: {transaction.amount} AZN\n")
+        printer.text(f"{_('Amount')}: {transaction.amount} AZN\n")
         printer.set(align='left', font='a', width=1, height=1)
         printer.text("─" * 32 + "\n\n")
         
-        printer.text(f"Balans: {transaction.client.balance} AZN\n")
+        printer.text(f"{_('Balance')}: {transaction.client.balance} AZN\n")
         printer.text("─" * 32 + "\n\n")
         
         printer.set(align='center', font='a', width=1, height=1)
-        printer.text("Tesekkur edirik!\n\n")
-        printer.text(f"№ transaksiya: {transaction.id}\n\n")
+        printer.text(f"{_('Thank you!')}\n\n")
+        printer.text(f"{_('Transaction #')}: {transaction.id}\n\n")
         
         # Отрезка чека
         printer.cut()

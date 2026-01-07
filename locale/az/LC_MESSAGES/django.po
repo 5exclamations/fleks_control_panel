@@ -1,0 +1,240 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-07 16:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: az\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Control Panel"
+msgstr "İdarəetmə Paneli"
+
+msgid "Reports"
+msgstr "Hesabatlar"
+
+msgid "Django Admin"
+msgstr "Django Admin"
+
+msgid "Logout"
+msgstr "Çıxış"
+
+msgid "Process Session"
+msgstr "Sessiya keçirmək"
+
+msgid "Client"
+msgstr "Müştəri"
+
+msgid "Select client"
+msgstr "Müştəri seçin"
+
+msgid "Balance"
+msgstr "Balans"
+
+msgid "Worker"
+msgstr "İşçi"
+
+msgid "Select worker"
+msgstr "İşçi seçin"
+
+msgid "Session cost"
+msgstr "Sessiyanın dəyəri"
+
+msgid "Process payment and print receipt"
+msgstr "Ödənişi həyata keçirin və çek çap edin"
+
+msgid "Top up client balance"
+msgstr "Müştəri balansını artırmaq"
+
+msgid "Top-up amount"
+msgstr "Artırma məbləği"
+
+msgid "Top up"
+msgstr "Artır"
+
+msgid "Recent transactions (sessions)"
+msgstr "Son əməliyyatlar (sessiyalar)"
+
+msgid "Date/time"
+msgstr "Tarix/vaxt"
+
+msgid "Amount"
+msgstr "Məbləğ"
+
+msgid "Receipt status"
+msgstr "Çek statusu"
+
+msgid "Actions"
+msgstr "Hərəkətlər"
+
+msgid "Printed"
+msgstr "Çap edilib"
+
+msgid "Not printed"
+msgstr "Çap edilməyib"
+
+msgid "View"
+msgstr "Baxış"
+
+msgid "Print"
+msgstr "Çap"
+
+msgid "No transactions yet."
+msgstr "Hələ transaksiya yoxdur."
+
+msgid "Financial Reports"
+msgstr "Maliyyə Hesabatları"
+
+msgid "Filter"
+msgstr "Filtrlə"
+
+msgid "All time"
+msgstr "Bütün vaxt"
+
+msgid "Today"
+msgstr "Bu gün"
+
+msgid "This week"
+msgstr "Bu həftə"
+
+msgid "This month"
+msgstr "Bu ay"
+
+msgid "Start date"
+msgstr "Başlanğıc tarixi"
+
+msgid "End date"
+msgstr "Son tarix"
+
+msgid "All clients"
+msgstr "Bütün müştərilər"
+
+msgid "All workers"
+msgstr "Bütün işçilər"
+
+msgid "Show period"
+msgstr "Dövrü göstər"
+
+msgid "Summary"
+msgstr "Xülasə"
+
+msgid "Total income (Sessions)"
+msgstr "Ümumi gəlir (Sessiyalar)"
+
+msgid "Client top-ups"
+msgstr "Müştəri artımları"
+
+msgid "Operation details"
+msgstr "Əməliyyatların təfərrüatı"
+
+msgid "Date and time"
+msgstr "Tarix və vaxt"
+
+msgid "Operation type"
+msgstr "Əməliyyat növü"
+
+msgid "Description"
+msgstr "Təsvir"
+
+msgid "Income (to cash)"
+msgstr "Gəlir (kassaya)"
+
+msgid "No operations found for the selected period."
+msgstr "Seçilmiş dövr üçün əməliyyat tapılmadı."
+
+msgid "Receipt"
+msgstr "Çek"
+
+msgid "Date"
+msgstr "Tarix"
+
+msgid "Thank you!"
+msgstr "Təşəkkür edirik!"
+
+msgid "Transaction #"
+msgstr "№ transaksiya"
+
+msgid "Download PDF"
+msgstr "PDF yüklə"
+
+msgid "Print to printer"
+msgstr "Printerə çap et"
+
+msgid "Back"
+msgstr "Geri"
+
+msgid "Error: Client not selected or top-up amount is incorrect."
+msgstr "Xəta: Müştəri seçilməyib və ya artırma məbləği düzgün deyil."
+
+msgid "Client %(client_name)s balance successfully topped up by %(amount)s."
+msgstr "Müştəri %(client_name)s balansı %(amount)s məbləğində uğurla artırıldı."
+
+msgid "Error: Client not found."
+msgstr "Xəta: Müştəri tapılmadı."
+
+msgid "An unexpected error occurred during top-up: %(error)s"
+msgstr "Artırma zamanı gözlənilməz xəta baş verdi: %(error)s"
+
+msgid "Session error: Data is incorrect."
+msgstr "Sessiya xətası: Məlumatlar düzgün deyil."
+
+msgid "Error: Client %(client_name)s has insufficient funds."
+msgstr "Xəta: Müştəri %(client_name)s balansında kifayət qədər vəsait yoxdur."
+
+msgid "Session payment processed successfully."
+msgstr "Sessiya ödənişi uğurla həyata keçirildi."
+
+msgid "Error: Worker not found."
+msgstr "Xəta: İşçi tapılmadı."
+
+msgid "An unexpected error occurred: %(error)s"
+msgstr "Gözlənilməz xəta baş verdi: %(error)s"
+
+msgid "all time"
+msgstr "bütün vaxt"
+
+msgid "today"
+msgstr "bu gün"
+
+msgid "this week"
+msgstr "cari həftə"
+
+msgid "this month"
+msgstr "cari ay"
+
+msgid "from %(start)s to %(end)s"
+msgstr "%(start)s - %(end)s arası"
+
+msgid "Invalid date format. Use: YYYY-MM-DD."
+msgstr "Tarix formatı düzgün deyil. İSTİFADƏ EDİN: İLİL-AA-GG."
+
+msgid "Invalid client identifier."
+msgstr "Müştəri identifikatoru düzgün deyil."
+
+msgid "Invalid worker identifier."
+msgstr "İşçi identifikatoru düzgün deyil."
+
+msgid "Session (Income)"
+msgstr "Sessiya (Gəlir)"
+
+msgid "Top-up"
+msgstr "Artırma"
+
+msgid "Client: %(client_name)s"
+msgstr "Müştəri: %(client_name)s"
+
+msgid "Receipt printed successfully."
+msgstr "Çek uğurla çap edildi."
+
+msgid "Failed to print receipt: %(error)s"
+msgstr "Çek çap edilə bilmədi: %(error)s"
+
