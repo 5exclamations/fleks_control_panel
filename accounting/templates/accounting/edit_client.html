@@ -82,7 +82,12 @@
                     {% for value, label in client_types %}
                         <option
                             value="{{ value }}"
-                            {% if form.client_type == value or (not form and client.client_type == value) %}selected{% endif %}
+                            {# Если есть данные формы — используем их, иначе берём значение из клиента #}
+                            {% if form.client_type %}
+                                {% if form.client_type == value %}selected{% endif %}
+                            {% else %}
+                                {% if client.client_type == value %}selected{% endif %}
+                            {% endif %}
                         >
                             {% if value == 'child' %}{% trans "Child" %}{% elif value == 'teenager' %}{% trans "Teenager" %}{% else %}{% trans "Adult" %}{% endif %}
                         </option>
