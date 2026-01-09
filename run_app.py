@@ -12,8 +12,9 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject1.settings')
 django.setup()
 
 def run_server():
-    # Запускаем dev-сервер на 127.0.0.1:8000
-    execute_from_command_line([sys.argv[0], 'runserver', '127.0.0.1:8000'])
+    # Запускаем dev-сервер на 127.0.0.1:8000 без авто-перезапуска (reloader),
+    # иначе Django пытается работать с сигналами не из главного потока.
+    execute_from_command_line([sys.argv[0], 'runserver', '127.0.0.1:8000', '--noreload'])
 
 if __name__ == '__main__':
     # Стартуем сервер в отдельном потоке
