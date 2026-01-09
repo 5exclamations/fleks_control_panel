@@ -358,6 +358,30 @@ def reports(request):
 
 @login_required(login_url='/admin/login/')
 @user_passes_test(is_staff_user, login_url='/admin/login/')
+def clients_list(request):
+    """
+    Отдельная страница со всеми клиентами и поиском
+    """
+    query = request.GET.get('q', '').strip()
+
+    clients_qs = Client.objects.all()
+
+    if query:
+        clients_qs = clients_qs.filter(
+            Q(full_name__icontains=query) |
+            Q(phone__icontains=query)
+        )
+
+    clients_qs = clients_qs.order_by('full_name')
+
+    context = {
+        'clients': clients_qs,
+        'query': query,
+    }
+    return render(request, 'accounting/clients_list.html', context)
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
 def print_receipt(request, transaction_id):
     """
     Печатает чек на физический принтер (если настроен)
@@ -515,3 +539,102 @@ def view_client(request, client_id):
     }
     
     return render(request, 'accounting/view_client.html', context)
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def edit_client(request, client_id):
+    """
+    Редактирование данных клиента
+    """
+    client = get_object_or_404(Client, id=client_id)
+
+    if request.method == 'POST':
+        try:
+            full_name = request.POST.get('full_name', '').strip()
+            date_of_birth_str = request.POST.get('date_of_birth', '').strip()
+            address = request.POST.get('address', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            referral_source = request.POST.get('referral_source', '').strip()
+            client_type = request.POST.get('client_type', 'adult')
+
+            if not full_name:
+                messages.error(request, gettext("Error: Client name is required."))
+                return render(request, 'accounting/edit_client.html', {
+                    'client_types': Client.CLIENT_TYPE_CHOICES,
+                    'client': client,
+                    'form_data': request.POST
+                })
+
+            # Проверяем уникальность имени (кроме текущего клиента)
+            if Client.objects.filter(full_name=full_name).exclude(id=client.id).exists():
+                messages.error(request, gettext("Error: A client with this name already exists."))
+                return render(request, 'accounting/edit_client.html', {
+                    'client_types': Client.CLIENT_TYPE_CHOICES,
+                    'client': client,
+                    'form_data': request.POST
+                })
+
+            # Парсим дату рождения
+            date_of_birth = None
+            if date_of_birth_str:
+                try:
+                    date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+                except ValueError:
+                    messages.error(request, gettext("Invalid date format. Use: YYYY-MM-DD."))
+                    return render(request, 'accounting/edit_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'client': client,
+                        'form_data': request.POST
+                    })
+
+            # Обновляем данные клиента (баланс не трогаем здесь)
+            client.full_name = full_name
+            client.date_of_birth = date_of_birth
+            client.address = address
+            client.phone = phone
+            client.referral_source = referral_source
+            client.client_type = client_type
+            client.save()
+
+            messages.success(request, gettext("Client %(client_name)s updated successfully.") % {
+                'client_name': client.full_name
+            })
+            return redirect('view_client', client_id=client.id)
+
+        except Exception as e:
+            messages.error(request, gettext("An unexpected error occurred while updating client: %(error)s") % {'error': e})
+            return render(request, 'accounting/edit_client.html', {
+                'client_types': Client.CLIENT_TYPE_CHOICES,
+                'client': client,
+                'form_data': request.POST
+            })
+    else:
+        return render(request, 'accounting/edit_client.html', {
+            'client_types': Client.CLIENT_TYPE_CHOICES,
+            'client': client
+        })
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def delete_client(request, client_id):
+    """
+    Удаление клиента (без существующих транзакций/пополнений)
+    """
+    client = get_object_or_404(Client, id=client_id)
+
+    if request.method != 'POST':
+        return redirect('view_client', client_id=client.id)
+
+    # Не даём удалить клиента, если есть операции
+    if client.transactions_as_client.exists() or client.deposits.exists():
+        messages.error(request, gettext("Error: Cannot delete client with existing sessions or deposits."))
+        return redirect('view_client', client_id=client.id)
+
+    name = client.full_name
+    client.delete()
+    messages.success(request, gettext("Client %(client_name)s deleted successfully.") % {
+        'client_name': name
+    })
+    return redirect('clients_list')

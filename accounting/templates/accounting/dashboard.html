@@ -19,7 +19,7 @@
     </div>
     
     <div class="form-container">
-        <div class="form-card" id="session-form">
+        <div class="form-card form-card--narrow" id="session-form">
             <h2>{% trans "Process Session" %}</h2>
             <form action="{% url 'dashboard' %}" method="POST">
                 {% csrf_token %}
@@ -56,7 +56,7 @@
             </form>
         </div>
 
-        <div class="form-card">
+        <div class="form-card form-card--narrow">
             <h2>{% trans "Top up client balance" %}</h2>
             <form action="{% url 'dashboard' %}" method="POST">
                 {% csrf_token %}

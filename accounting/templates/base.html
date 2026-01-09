@@ -7,15 +7,19 @@
     <style>
         body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
         h1, h2, h3 { color: #333; }
-        .content { margin: 20px; }
+        .content {
+            margin: 20px;
+            min-height: calc(100vh - 70px);
+        }
         .form-container {
             display: flex;
             justify-content: center;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
         }
-        #session-form{
-            margin-right: 20%;
+        .buttons { margin-top: 30px;
         }
-
         .navbar {
             background: #333;
             padding: 15px 20px;
@@ -24,7 +28,7 @@
             align-items: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        .navbar a { color: white; text-decoration: none; padding: 0 15px; transition: color 0.2s; }
+        .navbar a { color: white; text-decoration: none; padding: 0 15px; transition: color 0.2s;}
         .navbar a:hover { color: #007bff; }
         .navbar .logo { font-size: 1.2em; font-weight: bold; color: white; }
 
@@ -51,8 +55,11 @@
             border-radius: 10px;
             padding: 25px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+        }
+        .form-card--narrow {
             flex: 1;
-            max-width: 350px;
+            max-width: 380px;
         }
         .form-card h2 {
             border-bottom: 2px solid #f4f4f4;
@@ -127,13 +134,24 @@
         <div>
             <a href="{% url 'dashboard' %}">{% trans "Control Panel" %}</a>
             <a href="{% url 'reports' %}">{% trans "Reports" %}</a>
+            <a href="{% url 'clients_list' %}">{% trans "Clients" %}</a>
             <a href="/admin/">{% trans "Django Admin" %}</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'admin:logout' %}">{% trans "Logout" %} ({{ user.username }})</a>
             {% endif %}
-            <form action="{% url 'set_language' %}" method="post" style="display: inline;">
+            {# Переключатель языка #}
+            <form class = "buttons" action="{% url 'set_language' %}" method="post" style="display: inline;">
                 {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.get_full_path }}" />
+                {# Если мы находимся на /ru/... и хотим вернуться на язык по умолчанию (az), убираем префикс /ru #}
+                {% with request.get_full_path as full_path %}
+                    {% if full_path|slice:"0:4" == '/ru/' %}
+                        {% with full_path|slice:"3:" as next_url %}
+                            <input name="next" type="hidden" value="{{ next_url }}" />
+                        {% endwith %}
+                    {% else %}
+                        <input name="next" type="hidden" value="{{ full_path }}" />
+                    {% endif %}
+                {% endwith %}
                 <select name="language" onchange="this.form.submit()" style="background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 3px; margin-left: 10px;">
                     {% get_current_language as LANGUAGE_CODE %}
                     {% get_available_languages as LANGUAGES %}

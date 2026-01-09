@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit client" %}: {{ client.full_name }}{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'view_client' client.id %}" style="color: #007bff; text-decoration: none;">← {% trans "Back to client" %}</a>
+    </div>
+
+    <h1>{% trans "Edit client" %}</h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% with form=form_data|default:None %}
+    <div class="form-card" style="max-width: 600px; margin: 0 auto;">
+        <form method="POST" action="{% url 'edit_client' client.id %}">
+            {% csrf_token %}
+
+            <div>
+                <label for="full_name">{% trans "Full name" %} <span style="color: red;">*</span>:</label>
+                <input
+                    type="text"
+                    id="full_name"
+                    name="full_name"
+                    required
+                    maxlength="200"
+                    value="{{ form.full_name|default:client.full_name }}"
+                >
+            </div>
+
+            <div>
+                <label for="date_of_birth">{% trans "Date of birth" %}:</label>
+                <input
+                    type="date"
+                    id="date_of_birth"
+                    name="date_of_birth"
+                    value="{{ form.date_of_birth|default:client.date_of_birth|date:'Y-m-d' }}"
+                >
+            </div>
+
+            <div>
+                <label for="address">{% trans "Address" %}:</label>
+                <textarea
+                    id="address"
+                    name="address"
+                    rows="3"
+                >{{ form.address|default:client.address }}</textarea>
+            </div>
+
+            <div>
+                <label for="phone">{% trans "Phone" %}:</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    maxlength="20"
+                    value="{{ form.phone|default:client.phone }}"
+                >
+            </div>
+
+            <div>
+                <label for="referral_source">{% trans "How did you hear about us?" %}:</label>
+                <input
+                    type="text"
+                    id="referral_source"
+                    name="referral_source"
+                    maxlength="200"
+                    value="{{ form.referral_source|default:client.referral_source }}"
+                >
+            </div>
+
+            <div>
+                <label for="client_type">{% trans "Client type" %}:</label>
+                <select id="client_type" name="client_type" required>
+                    {% for value, label in client_types %}
+                        <option
+                            value="{{ value }}"
+                            {% if form.client_type == value or (not form and client.client_type == value) %}selected{% endif %}
+                        >
+                            {% if value == 'child' %}{% trans "Child" %}{% elif value == 'teenager' %}{% trans "Teenager" %}{% else %}{% trans "Adult" %}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit">{% trans "Save changes" %}</button>
+                <a href="{% url 'view_client' client.id %}" style="background: #6c757d; color: white; padding: 12px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                    {% trans "Cancel" %}
+                </a>
+            </div>
+        </form>
+    </div>
+    {% endwith %}
+{% endblock %}
+
+
