@@ -162,12 +162,14 @@
             {# Переключатель языка #}
             <form class="buttons lang-switcher" action="{% url 'set_language' %}" method="post">
                 {% csrf_token %}
-                {# Если мы находимся на /ru/... и хотим вернуться на язык по умолчанию (az), убираем префикс /ru #}
+                {# Если мы находимся на /ru/... или /en/... и хотим вернуться на язык по умолчанию (az), убираем префикс #}
                 {% with request.get_full_path as full_path %}
-                    {% if full_path|slice:"0:4" == '/ru/' %}
+                    {% if full_path|slice:"0:4" == '/ru/' or full_path|slice:"0:4" == '/en/' %}
                         {% with full_path|slice:"3:" as next_url %}
                             <input name="next" type="hidden" value="{{ next_url }}" />
                         {% endwith %}
+                    {% elif full_path == '/ru' or full_path == '/en' %}
+                        <input name="next" type="hidden" value="/" />
                     {% else %}
                         <input name="next" type="hidden" value="{{ full_path }}" />
                     {% endif %}
