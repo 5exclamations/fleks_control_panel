@@ -4,6 +4,7 @@
 {% block title %}{% trans "Financial Reports" %}{% endblock %}
 
 {% block content %}
+    {% get_current_language as CURRENT_LANG %}
     <style>
         .report-actions {
             display: flex;
@@ -96,7 +97,9 @@
         </form>
 
         <div class="report-actions no-print">
-            <a href="{% url 'reports' %}?{{ export_pdf_download_query_string }}" target="_blank">{% trans "Save as PDF" %}</a>
+            <a href="{% url 'reports' %}?{{ export_pdf_download_query_string }}" target="_blank">
+                {% if CURRENT_LANG == 'ru' %}Сохранить как PDF{% elif CURRENT_LANG == 'az' %}PDF olaraq saxla{% else %}Save as PDF{% endif %}
+            </a>
             <a href="{% url 'reports' %}?{{ export_pdf_print_query_string }}" target="_blank">{% trans "Print" %}</a>
         </div>
     </div>
@@ -140,9 +143,9 @@
                     </td>
                     <td>
                         {% if event.is_deposit %}
-                            <a href="{% url 'print_deposit_receipt' event.deposit_id %}" class="row-print-btn">{% trans "Print receipt" %}</a>
+                            <a href="{% url 'view_deposit_receipt' event.deposit_id %}?print=1" target="_blank" class="row-print-btn">{% trans "Print" %}</a>
                         {% else %}
-                            <a href="{% url 'print_receipt' event.transaction_id %}" class="row-print-btn">{% trans "Print receipt" %}</a>
+                            <a href="{% url 'view_receipt' event.transaction_id %}?print=1" target="_blank" class="row-print-btn">{% trans "Print" %}</a>
                         {% endif %}
                     </td>
                 </tr>

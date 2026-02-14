@@ -4,6 +4,7 @@
 {% block title %}{% trans "Control Panel" %}{% endblock %}
 
 {% block content %}
+    {% get_current_language as CURRENT_LANG %}
     <style>
         .dashboard-page button { margin-top: 0; }
         .dashboard-toolbar {
@@ -79,7 +80,7 @@
                     <input list="client_session_list"
                            id="client_session_display"
                            name="client_session_display"
-                           placeholder="{% trans 'Search client' %}"
+                              placeholder="{% if CURRENT_LANG == 'ru' %}Поиск клиента{% elif CURRENT_LANG == 'az' %}Müştəri axtar{% else %}Search client{% endif %}"
                            autocomplete="off">
                     <input type="hidden" id="client_session" name="client_id" required>
                     <datalist id="client_session_list">
@@ -95,7 +96,7 @@
                     <input list="worker_session_list"
                            id="worker_session_display"
                            name="worker_session_display"
-                           placeholder="{% trans 'Search worker' %}"
+                              placeholder="{% if CURRENT_LANG == 'ru' %}Поиск сотрудника{% elif CURRENT_LANG == 'az' %}Mütəxəssis axtar{% else %}Search worker{% endif %}"
                               autocomplete="off">
                     <input type="hidden" id="worker_session" name="worker_id" required>
                     <datalist id="worker_session_list">
@@ -130,7 +131,7 @@
                     <input list="client_deposit_list"
                            id="client_deposit_display"
                            name="client_deposit_display"
-                           placeholder="{% trans 'Search client' %}"
+                              placeholder="{% if CURRENT_LANG == 'ru' %}Поиск клиента{% elif CURRENT_LANG == 'az' %}Müştəri axtar{% else %}Search client{% endif %}"
                            autocomplete="off">
                     <input type="hidden" id="client_deposit" name="client_id" required>
                     <datalist id="client_deposit_list">
