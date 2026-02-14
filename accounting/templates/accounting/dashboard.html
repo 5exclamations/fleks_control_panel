@@ -44,7 +44,10 @@
 
                 <div>
                     <label for="worker_session_display">{% trans "Worker" %}:</label>
-                    <input list="worker_session_list" id="worker_session_display" placeholder="{% trans 'Search worker' %}"
+                    <input list="worker_session_list"
+                           id="worker_session_display"
+                           name="worker_session_display"
+                           placeholder="{% trans 'Search worker' %}"
                            style="width:100%; padding:8px;">
                     <input type="hidden" id="worker_session" name="worker_id" required>
                     <datalist id="worker_session_list">

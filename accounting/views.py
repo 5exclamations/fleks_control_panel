@@ -150,6 +150,10 @@ def dashboard(request):
                         # strip balance info if present e.g. "Name (10 AZN / Lessons: 3)"
                         name_only = display_name.split(' (', 1)[0].strip()
                         candidate = Client.objects.filter(full_name__iexact=name_only).first()
+                        if not candidate:
+                            candidates = list(Client.objects.filter(full_name__icontains=name_only))
+                            if len(candidates) == 1:
+                                candidate = candidates[0]
                         if candidate:
                             client_id = str(candidate.id)
                 # Accept commas/whitespace and allow leaving lessons empty (treat as 0)
@@ -206,6 +210,36 @@ def dashboard(request):
             try:
                 client_id = request.POST.get('client_id')
                 worker_id = request.POST.get('worker_id')
+                if not client_id:
+                    display_name = (request.POST.get('client_session_display') or '').strip()
+                    if display_name:
+                        name_only = display_name.split(' (', 1)[0].strip()
+                        candidate = Client.objects.filter(full_name__iexact=name_only).first()
+                        if not candidate:
+                            candidates = list(Client.objects.filter(full_name__icontains=name_only))
+                            if len(candidates) == 1:
+                                candidate = candidates[0]
+                        if candidate:
+                            client_id = str(candidate.id)
+
+                if not worker_id:
+                    worker_display = (request.POST.get('worker_session_display') or '').strip()
+                    if worker_display:
+                        worker_candidate = Worker.objects.filter(
+                            Q(user__username__iexact=worker_display) |
+                            Q(user__first_name__iexact=worker_display) |
+                            Q(user__last_name__iexact=worker_display)
+                        ).first()
+                        if not worker_candidate:
+                            workers = list(Worker.objects.filter(
+                                Q(user__username__icontains=worker_display) |
+                                Q(user__first_name__icontains=worker_display) |
+                                Q(user__last_name__icontains=worker_display)
+                            ))
+                            if len(workers) == 1:
+                                worker_candidate = workers[0]
+                        if worker_candidate:
+                            worker_id = str(worker_candidate.id)
                 cost_str = request.POST.get('session_cost')
                 lessons_count_str = request.POST.get('session_lessons', '').strip()
 
