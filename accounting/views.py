@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, gettext
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response, print_receipt_for_deposit
@@ -143,17 +143,30 @@ def dashboard(request):
         if action_type == 'deposit':
             try:
                 client_id = request.POST.get('client_id')
-                amount_str = request.POST.get('deposit_amount')
-                lessons_count_str = request.POST.get('deposit_lessons', '').strip()
+                # Fallback: user might type the name but not pick the datalist option
+                if not client_id:
+                    display_name = (request.POST.get('client_deposit_display') or '').strip()
+                    if display_name:
+                        # strip balance info if present e.g. "Name (10 AZN / Lessons: 3)"
+                        name_only = display_name.split(' (', 1)[0].strip()
+                        candidate = Client.objects.filter(full_name__iexact=name_only).first()
+                        if candidate:
+                            client_id = str(candidate.id)
+                # Accept commas/whitespace and allow leaving lessons empty (treat as 0)
+                amount_str = (request.POST.get('deposit_amount') or '').replace(',', '.').strip()
+                lessons_count_str = (request.POST.get('deposit_lessons') or '').strip()
 
-                if not client_id or not amount_str or lessons_count_str == '':
+                if lessons_count_str == '':
+                    lessons_count_str = '0'
+
+                if not client_id or not amount_str:
                     messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
                     return redirect('dashboard')
 
                 try:
                     amount = Decimal(amount_str)
                     lessons_added = int(lessons_count_str)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, InvalidOperation):
                     messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
                     return redirect('dashboard')
 

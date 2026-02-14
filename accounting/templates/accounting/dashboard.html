@@ -28,7 +28,10 @@
 
                 <div>
                     <label for="client_session_display">{% trans "Client" %}:</label>
-                    <input list="client_session_list" id="client_session_display" placeholder="{% trans 'Search client' %}"
+                    <input list="client_session_list"
+                           id="client_session_display"
+                           name="client_session_display"
+                           placeholder="{% trans 'Search client' %}"
                            style="width:100%; padding:8px;">
                     <input type="hidden" id="client_session" name="client_id" required>
                     <datalist id="client_session_list">
@@ -73,7 +76,10 @@
 
                 <div>
                     <label for="client_deposit_display">{% trans "Client" %}:</label>
-                    <input list="client_deposit_list" id="client_deposit_display" placeholder="{% trans 'Search client' %}"
+                    <input list="client_deposit_list"
+                           id="client_deposit_display"
+                           name="client_deposit_display"
+                           placeholder="{% trans 'Search client' %}"
                            style="width:100%; padding:8px;">
                     <input type="hidden" id="client_deposit" name="client_id" required>
                     <datalist id="client_deposit_list">
