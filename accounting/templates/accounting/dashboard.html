@@ -4,7 +4,59 @@
 {% block title %}{% trans "Control Panel" %}{% endblock %}
 
 {% block content %}
-    <h1>{% trans "Control Panel" %}</h1>
+    <style>
+        .dashboard-page button { margin-top: 0; }
+        .dashboard-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .btn-link {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-sm {
+            padding: 9px 14px;
+            border-radius: 6px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1;
+        }
+        .btn-primary { background: #007bff; color: #fff; }
+        .btn-success { background: #28a745; color: #fff; }
+        .btn-info { background: #17a2b8; color: #fff; }
+        .input-hint { display: block; margin-top: 4px; font-size: 12px; }
+        .input-hint a { color: #007bff; text-decoration: none; }
+        .operation-tag {
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .operation-tag--session { background: #28a745; }
+        .operation-tag--deposit { background: #17a2b8; }
+        .dashboard-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        .dashboard-actions .btn-sm { padding: 6px 10px; font-size: 12px; }
+    </style>
+
+    <div class="dashboard-page">
+    <div class="dashboard-toolbar">
+        <h1 style="margin: 0;">{% trans "Control Panel" %}</h1>
+        <a href="{% url 'create_client' %}" class="btn-link btn-sm btn-success">{% trans "Add new client" %}</a>
+    </div>
 
     {% if messages %}
         <ul class="messages">
@@ -13,10 +65,6 @@
             {% endfor %}
         </ul>
     {% endif %}
-    
-    <div style="margin-bottom: 20px;">
-        <a href="{% url 'create_client' %}" style="background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: bold;">{% trans "Add new client" %}</a>
-    </div>
     
     <div class="form-container">
         <div class="form-card form-card--narrow" id="session-form">
@@ -32,15 +80,14 @@
                            id="client_session_display"
                            name="client_session_display"
                            placeholder="{% trans 'Search client' %}"
-                           autocomplete="off"
-                           style="width:100%; padding:8px;">
+                           autocomplete="off">
                     <input type="hidden" id="client_session" name="client_id" required>
                     <datalist id="client_session_list">
                         {% for client in clients %}
                             <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN / {% trans "Lessons" %}: {{ client.lessons_balance }})"></option>
                         {% endfor %}
                     </datalist>
-                    <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
+                    <small class="input-hint"><a href="{% url 'create_client' %}">{% trans "Add new client" %}</a></small>
                 </div>
 
                 <div>
@@ -49,8 +96,7 @@
                            id="worker_session_display"
                            name="worker_session_display"
                            placeholder="{% trans 'Search worker' %}"
-                           autocomplete="off"
-                           style="width:100%; padding:8px;">
+                              autocomplete="off">
                     <input type="hidden" id="worker_session" name="worker_id" required>
                     <datalist id="worker_session_list">
                         {% for worker in workers %}
@@ -61,15 +107,15 @@
 
                 <div>
                     <label for="session_cost">{% trans "Session cost" %}:</label>
-                    <input type="number" id="session_cost" name="session_cost" step="0.01" required>
+                    <input type="number" id="session_cost" name="session_cost" step="0.01" required placeholder="0.00">
                 </div>
 
                 <div>
                     <label for="session_lessons">{% trans "Lessons to charge" %}:</label>
-                    <input type="number" id="session_lessons" name="session_lessons" min="1" step="1" required>
+                    <input type="number" id="session_lessons" name="session_lessons" min="1" step="1" required placeholder="1">
                 </div>
 
-                <button type="submit">{% trans "Process payment and print receipt" %}</button>
+                <button type="submit" class="btn-sm btn-primary">{% trans "Process payment and print receipt" %}</button>
             </form>
         </div>
 
@@ -85,28 +131,27 @@
                            id="client_deposit_display"
                            name="client_deposit_display"
                            placeholder="{% trans 'Search client' %}"
-                           autocomplete="off"
-                           style="width:100%; padding:8px;">
+                           autocomplete="off">
                     <input type="hidden" id="client_deposit" name="client_id" required>
                     <datalist id="client_deposit_list">
                         {% for client in clients %}
                             <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN / {% trans "Lessons" %}: {{ client.lessons_balance }})"></option>
                         {% endfor %}
                     </datalist>
-                    <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
+                    <small class="input-hint"><a href="{% url 'create_client' %}">{% trans "Add new client" %}</a></small>
                 </div>
 
                 <div>
                     <label for="amount">{% trans "Top-up amount" %}:</label>
-                    <input type="number" id="amount" name="deposit_amount" step="0.01" required>
+                    <input type="number" id="amount" name="deposit_amount" step="0.01" required placeholder="0.00">
                 </div>
 
                 <div>
                     <label for="deposit_lessons">{% trans "Lessons to add" %}:</label>
-                    <input type="number" id="deposit_lessons" name="deposit_lessons" min="0" step="1" required>
+                    <input type="number" id="deposit_lessons" name="deposit_lessons" min="0" step="1" required placeholder="0">
                 </div>
 
-                <button type="submit">{% trans "Top up" %}</button>
+                <button type="submit" class="btn-sm btn-info">{% trans "Top up" %}</button>
             </form>
         </div>
 
@@ -133,16 +178,16 @@
                     <td>{{ op.date_time|date:"d.m.Y H:i" }}</td>
                     <td>
                         {% if op.type == 'transaction' %}
-                            <span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">{% trans "Session" %}</span>
+                            <span class="operation-tag operation-tag--session">{% trans "Session" %}</span>
                         {% else %}
-                            <span style="background: #17a2b8; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">{% trans "Top-up" %}</span>
+                            <span class="operation-tag operation-tag--deposit">{% trans "Top-up" %}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if op.type == 'transaction' %}
-                            <a href="{% url 'view_client' op.transaction.client.id %}" style="color: #007bff; text-decoration: none;">{{ op.transaction.client.full_name }}</a>
+                            <a href="{% url 'view_client' op.transaction.client.id %}" style="color: #007bff; text-decoration: none; font-weight: 600;">{{ op.transaction.client.full_name }}</a>
                         {% else %}
-                            <a href="{% url 'view_client' op.deposit.client.id %}" style="color: #007bff; text-decoration: none;">{{ op.deposit.client.full_name }}</a>
+                            <a href="{% url 'view_client' op.deposit.client.id %}" style="color: #007bff; text-decoration: none; font-weight: 600;">{{ op.deposit.client.full_name }}</a>
                         {% endif %}
                     </td>
                     <td>
@@ -174,13 +219,13 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div style="display: flex; gap: 5px;">
+                        <div class="dashboard-actions">
                             {% if op.type == 'transaction' %}
-                                <a href="{% url 'view_receipt' op.transaction.id %}" style="background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px;">{% trans "View" %}</a>
-                                <a href="{% url 'view_receipt' op.transaction.id %}?print=1" target="_blank" style="background: #28a745; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px; display: inline-block;">{% trans "Print" %}</a>
+                                <a href="{% url 'view_receipt' op.transaction.id %}" class="btn-link btn-sm btn-info">{% trans "View" %}</a>
+                                <a href="{% url 'view_receipt' op.transaction.id %}?print=1" target="_blank" class="btn-link btn-sm btn-success">{% trans "Print" %}</a>
                             {% else %}
-                                <a href="{% url 'view_deposit_receipt' op.deposit.id %}" style="background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px;">{% trans "View" %}</a>
-                                <a href="{% url 'view_deposit_receipt' op.deposit.id %}?print=1" target="_blank" style="background: #28a745; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px; display: inline-block;">{% trans "Print" %}</a>
+                                <a href="{% url 'view_deposit_receipt' op.deposit.id %}" class="btn-link btn-sm btn-info">{% trans "View" %}</a>
+                                <a href="{% url 'view_deposit_receipt' op.deposit.id %}?print=1" target="_blank" class="btn-link btn-sm btn-success">{% trans "Print" %}</a>
                             {% endif %}
                         </div>
                     </td>
@@ -191,6 +236,7 @@
         {% else %}
             <p>{% trans "No operations yet." %}</p>
         {% endif %}
+    </div>
     </div>
 {% endblock %}
 
