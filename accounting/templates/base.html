@@ -18,8 +18,7 @@
             align-items: flex-start;
             flex-wrap: wrap;
         }
-        .buttons { margin-top: 30px;
-        }
+        .buttons { margin: 0; }
         .navbar {
             background: #333;
             padding: 15px 20px;
@@ -28,9 +27,30 @@
             align-items: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        .navbar a { color: white; text-decoration: none; padding: 0 15px; transition: color 0.2s;}
+        .navbar a { color: white; text-decoration: none; padding: 0 10px; transition: color 0.2s; }
         .navbar a:hover { color: #007bff; }
         .navbar .logo { font-size: 1.2em; font-weight: bold; color: white; }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .lang-switcher {
+            display: inline-flex;
+            align-items: center;
+            margin: 0;
+        }
+        .lang-switcher select {
+            background: #2b2b2b;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            height: 32px;
+            width: auto;
+        }
 
 
         .messages { list-style: none; padding: 0; }
@@ -131,7 +151,7 @@
 <body>
     <div class="navbar">
         <span class="logo">{% trans "Control Panel" %}</span>
-        <div>
+        <div class="nav-links">
             <a href="{% url 'dashboard' %}">{% trans "Control Panel" %}</a>
             <a href="{% url 'reports' %}">{% trans "Reports" %}</a>
             <a href="{% url 'clients_list' %}">{% trans "Clients" %}</a>
@@ -140,7 +160,7 @@
                 <a href="{% url 'admin:logout' %}">{% trans "Logout" %} ({{ user.username }})</a>
             {% endif %}
             {# Переключатель языка #}
-            <form class = "buttons" action="{% url 'set_language' %}" method="post" style="display: inline;">
+            <form class="buttons lang-switcher" action="{% url 'set_language' %}" method="post">
                 {% csrf_token %}
                 {# Если мы находимся на /ru/... и хотим вернуться на язык по умолчанию (az), убираем префикс /ru #}
                 {% with request.get_full_path as full_path %}
@@ -152,7 +172,7 @@
                         <input name="next" type="hidden" value="{{ full_path }}" />
                     {% endif %}
                 {% endwith %}
-                <select name="language" onchange="this.form.submit()" style="background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 3px; margin-left: 10px;">
+                <select name="language" onchange="this.form.submit()">
                     {% get_current_language as LANGUAGE_CODE %}
                     {% get_available_languages as LANGUAGES %}
                     {% for lang_code, lang_name in LANGUAGES %}
