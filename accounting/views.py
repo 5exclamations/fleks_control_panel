@@ -621,6 +621,9 @@ def reports(request):
     if selected_worker_id:
         try:
             transactions_qs = transactions_qs.filter(worker_id=int(selected_worker_id))
+            # У пополнений нет привязки к сотруднику, поэтому при фильтре по сотруднику
+            # показываем только сеансы конкретного сотрудника.
+            deposits_qs = deposits_qs.none()
             selected_worker = Worker.objects.select_related('user').filter(id=int(selected_worker_id)).first()
             if selected_worker:
                 selected_worker_name = selected_worker.user.get_full_name() or selected_worker.user.username

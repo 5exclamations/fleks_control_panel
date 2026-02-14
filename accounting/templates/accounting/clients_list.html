@@ -4,82 +4,144 @@
 {% block title %}{% trans "Clients" %}{% endblock %}
 
 {% block content %}
-    <h1>{% trans "Clients" %}</h1>
+    <style>
+        .clients-page button {
+            margin-top: 0;
+        }
+        .clients-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .clients-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+        .clients-search input[type="text"] {
+            width: 320px;
+            max-width: 50vw;
+            padding: 9px 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .btn-link {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-sm {
+            padding: 7px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1;
+        }
+        .btn-view {
+            background: #007bff;
+            color: #fff;
+        }
+        .btn-edit {
+            background: #17a2b8;
+            color: #fff;
+        }
+        .btn-delete {
+            background: #dc3545;
+            color: #fff;
+            cursor: pointer;
+        }
+        .btn-reset {
+            background: #6c757d;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .clients-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        .clients-actions form {
+            margin: 0;
+            display: inline-flex;
+        }
+    </style>
 
-    <form method="get" style="margin-bottom: 20px;">
-        <input
-            type="text"
-            name="q"
-            placeholder="{% trans 'Search by full name or phone' %}"
-            value="{{ query }}"
-            style="padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc; width: 260px;"
-        />
-        <button type="submit" style="padding: 8px 14px; border-radius: 4px; border: none; background: #007bff; color: white;">
-            {% trans "Search" %}
-        </button>
-        <a href="{% url 'clients_list' %}" style="margin-left: 8px; color: #666; text-decoration: none;">
-            {% trans "Reset" %}
-        </a>
-    </form>
+    <div class="clients-page">
+        <h1>{% trans "Clients" %}</h1>
 
-    <div class="form-card">
-        {% if clients %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>{% trans "Full name" %}</th>
-                        <th>{% trans "Client type" %}</th>
-                        <th>{% trans "Phone" %}</th>
-                        <th>{% trans "Balance" %}</th>
-                        <th>{% trans "Lessons" %}</th>
-                        <th>{% trans "Actions" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for client in clients %}
+        <div class="clients-toolbar">
+            <form method="get" class="clients-search">
+                <input
+                    type="text"
+                    name="q"
+                    placeholder="{% trans 'Search by full name or phone' %}"
+                    value="{{ query }}"
+                />
+                <button type="submit" class="btn-sm btn-view">{% trans "Search" %}</button>
+                <a href="{% url 'clients_list' %}" class="btn-link btn-sm btn-reset">{% trans "Reset" %}</a>
+            </form>
+        </div>
+
+        <div class="form-card">
+            {% if clients %}
+                <table>
+                    <thead>
                         <tr>
-                            <td>
-                                <a href="{% url 'view_client' client.id %}" style="color: #007bff; text-decoration: none;">
-                                    {{ client.full_name }}
-                                </a>
-                            </td>
-                            <td>
-                                {% if client.client_type == 'child' %}
-                                    {% trans "Child" %}
-                                {% elif client.client_type == 'teenager' %}
-                                    {% trans "Teenager" %}
-                                {% elif client.client_type == 'adult' %}
-                                    {% trans "Adult" %}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>{{ client.phone }}</td>
-                            <td>{{ client.balance }} AZN</td>
-                            <td>{{ client.lessons_balance }}</td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <a href="{% url 'view_client' client.id %}" class="button" style="padding: 4px 10px; font-size: 13px;">
-                                        {% trans "View" %}
-                                    </a>
-                                    <a href="{% url 'edit_client' client.id %}" class="button" style="padding: 4px 10px; font-size: 13px; background: #17a2b8;">
-                                        {% trans "Edit" %}
-                                    </a>
-                                    <form action="{% url 'delete_client' client.id %}" method="post" onsubmit="return confirm('{% trans 'Are you sure you want to delete this client? This action cannot be undone.' %}');">
-                                        {% csrf_token %}
-                                        <button type="submit" style="padding: 4px 10px; font-size: 13px; background: #dc3545; color: white; border-radius: 4px; border: none;">
-                                            {% trans "Delete" %}
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
+                            <th>{% trans "Full name" %}</th>
+                            <th>{% trans "Client type" %}</th>
+                            <th>{% trans "Phone" %}</th>
+                            <th>{% trans "Balance" %}</th>
+                            <th>{% trans "Lessons" %}</th>
+                            <th>{% trans "Actions" %}</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>{% trans "No clients found." %}</p>
-        {% endif %}
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'view_client' client.id %}" style="color: #007bff; text-decoration: none; font-weight: 600;">
+                                        {{ client.full_name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if client.client_type == 'child' %}
+                                        {% trans "Child" %}
+                                    {% elif client.client_type == 'teenager' %}
+                                        {% trans "Teenager" %}
+                                    {% elif client.client_type == 'adult' %}
+                                        {% trans "Adult" %}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ client.phone }}</td>
+                                <td>{{ client.balance }} AZN</td>
+                                <td>{{ client.lessons_balance }}</td>
+                                <td>
+                                    <div class="clients-actions">
+                                        <a href="{% url 'view_client' client.id %}" class="btn-link btn-sm btn-view">{% trans "View" %}</a>
+                                        <a href="{% url 'edit_client' client.id %}" class="btn-link btn-sm btn-edit">{% trans "Edit" %}</a>
+                                        <form action="{% url 'delete_client' client.id %}" method="post" onsubmit="return confirm('{% trans 'Are you sure you want to delete this client? This action cannot be undone.' %}');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-sm btn-delete">{% trans "Delete" %}</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>{% trans "No clients found." %}</p>
+            {% endif %}
+        </div>
     </div>
 {% endblock %}
 
