@@ -123,6 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'az'  # Азербайджанский по умолчанию
 
 LANGUAGES = [
+    ('en', 'English'),
     ('az', 'Azərbaycan'),
     ('ru', 'Русский'),
 ]

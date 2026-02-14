@@ -1,0 +1,362 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-07 16:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Control Panel"
+msgstr "Control Panel"
+
+msgid "Reports"
+msgstr "Reports"
+
+msgid "Django Admin"
+msgstr "Django Admin"
+
+msgid "Logout"
+msgstr "Logout"
+
+msgid "Process Session"
+msgstr "Process Session"
+
+msgid "Client"
+msgstr "Client"
+
+msgid "Select client"
+msgstr "Select client"
+
+msgid "Balance"
+msgstr "Balance"
+
+msgid "Worker"
+msgstr "Worker"
+
+msgid "Select worker"
+msgstr "Select worker"
+
+msgid "Session cost"
+msgstr "Session cost"
+
+msgid "Process payment and print receipt"
+msgstr "Process payment and print receipt"
+
+msgid "Top up client balance"
+msgstr "Top up client balance"
+
+msgid "Top-up amount"
+msgstr "Top-up amount"
+
+msgid "Top up"
+msgstr "Top up"
+
+msgid "Recent transactions (sessions)"
+msgstr "Recent transactions (sessions)"
+
+msgid "Date/time"
+msgstr "Date/time"
+
+msgid "Amount"
+msgstr "Amount"
+
+msgid "Receipt status"
+msgstr "Receipt status"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Printed"
+msgstr "Printed"
+
+msgid "Not printed"
+msgstr "Not printed"
+
+msgid "View"
+msgstr "View"
+
+msgid "Print"
+msgstr "Print"
+
+msgid "No transactions yet."
+msgstr "No transactions yet."
+
+msgid "Financial Reports"
+msgstr "Financial Reports"
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "All time"
+msgstr "All time"
+
+msgid "Today"
+msgstr "Today"
+
+msgid "This week"
+msgstr "This week"
+
+msgid "This month"
+msgstr "This month"
+
+msgid "Start date"
+msgstr "Start date"
+
+msgid "End date"
+msgstr "End date"
+
+msgid "All clients"
+msgstr "All clients"
+
+msgid "All workers"
+msgstr "All workers"
+
+msgid "Show period"
+msgstr "Show period"
+
+msgid "Summary"
+msgstr "Summary"
+
+msgid "Total income (Sessions)"
+msgstr "Total income (Sessions)"
+
+msgid "Client top-ups"
+msgstr "Client top-ups"
+
+msgid "Operation details"
+msgstr "Operation details"
+
+msgid "Date and time"
+msgstr "Date and time"
+
+msgid "Operation type"
+msgstr "Operation type"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Income (to cash)"
+msgstr "Income (to cash)"
+
+msgid "No operations found for the selected period."
+msgstr "No operations found for the selected period."
+
+msgid "Receipt"
+msgstr "Receipt"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Thank you!"
+msgstr "Thank you!"
+
+msgid "Transaction #"
+msgstr "Transaction #"
+
+msgid "Download PDF"
+msgstr "Download PDF"
+
+msgid "Print to printer"
+msgstr "Print to printer"
+
+msgid "Back"
+msgstr "Back"
+
+msgid "Error: Client not selected or top-up amount is incorrect."
+msgstr "Error: Client not selected or top-up amount is incorrect."
+
+msgid "Client %(client_name)s balance successfully topped up by %(amount)s."
+msgstr "Client %(client_name)s balance successfully topped up by %(amount)s."
+
+msgid "Error: Client not found."
+msgstr "Error: Client not found."
+
+msgid "An unexpected error occurred during top-up: %(error)s"
+msgstr "An unexpected error occurred during top-up: %(error)s"
+
+msgid "Session error: Data is incorrect."
+msgstr "Session error: Data is incorrect."
+
+msgid "Error: Client %(client_name)s has insufficient funds."
+msgstr "Error: Client %(client_name)s has insufficient funds."
+
+msgid "Session payment processed successfully."
+msgstr "Session payment processed successfully."
+
+msgid "Error: Worker not found."
+msgstr "Error: Worker not found."
+
+msgid "An unexpected error occurred: %(error)s"
+msgstr "An unexpected error occurred: %(error)s"
+
+msgid "all time"
+msgstr "all time"
+
+msgid "today"
+msgstr "today"
+
+msgid "this week"
+msgstr "this week"
+
+msgid "this month"
+msgstr "this month"
+
+msgid "from %(start)s to %(end)s"
+msgstr "from %(start)s to %(end)s"
+
+msgid "Invalid date format. Use: YYYY-MM-DD."
+msgstr "Invalid date format. Use: YYYY-MM-DD."
+
+msgid "Invalid client identifier."
+msgstr "Invalid client identifier."
+
+msgid "Invalid worker identifier."
+msgstr "Invalid worker identifier."
+
+msgid "Session (Income)"
+msgstr "Session (Income)"
+
+msgid "Balance top-up"
+msgstr "Balance top-up"
+
+msgid "Client: %(client_name)s"
+msgstr "Client: %(client_name)s"
+
+msgid "Receipt printed successfully."
+msgstr "Receipt printed successfully."
+
+msgid "Failed to print receipt: %(error)s"
+msgstr "Failed to print receipt: %(error)s"
+
+msgid "Add new client"
+msgstr "Add new client"
+
+msgid "Client name"
+msgstr "Client name"
+
+msgid "Initial balance"
+msgstr "Initial balance"
+
+msgid "optional"
+msgstr "optional"
+
+msgid "Enter client full name"
+msgstr "Enter client full name"
+
+msgid "Add client"
+msgstr "Add client"
+
+msgid "Error: Client name is required."
+msgstr "Error: Client name is required."
+
+msgid "Error: A client with this name already exists."
+msgstr "Error: A client with this name already exists."
+
+msgid "Client %(client_name)s created successfully."
+msgstr "Client %(client_name)s created successfully."
+
+msgid "An unexpected error occurred while creating client: %(error)s"
+msgstr "An unexpected error occurred while creating client: %(error)s"
+
+msgid "Full name"
+msgstr "Full name"
+
+msgid "Date of birth"
+msgstr "Date of birth"
+
+msgid "Address"
+msgstr "Address"
+
+msgid "Phone"
+msgstr "Phone"
+
+msgid "How did you hear about us?"
+msgstr "How did you hear about us?"
+
+msgid "Client type"
+msgstr "Client type"
+
+msgid "Child"
+msgstr "Child"
+
+msgid "Teenager"
+msgstr "Teenager"
+
+msgid "Adult"
+msgstr "Adult"
+
+msgid "Create client"
+msgstr "Create client"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Client information"
+msgstr "Client information"
+
+msgid "Back to dashboard"
+msgstr "Back to dashboard"
+
+msgid "Recent transactions"
+msgstr "Recent transactions"
+
+msgid "Recent deposits"
+msgstr "Recent deposits"
+
+msgid "Total sessions"
+msgstr "Total sessions"
+
+msgid "Total spent"
+msgstr "Total spent"
+
+msgid "Total deposited"
+msgstr "Total deposited"
+
+msgid "Created at"
+msgstr "Created at"
+
+msgid "View receipt"
+msgstr "View receipt"
+
+msgid "Clients"
+msgstr "Clients"
+
+msgid "Enter client address"
+msgstr "Enter client address"
+
+msgid "Enter phone number"
+msgstr "Enter phone number"
+
+msgid "Enter referral source"
+msgstr "Enter referral source"
+
+# Lessons related strings
+msgid "Lessons"
+msgstr "Lessons"
+
+msgid "Lessons balance"
+msgstr "Lessons balance"
+
+msgid "Lessons added"
+msgstr "Lessons added"
+
+msgid "Lessons to add"
+msgstr "Lessons to add"
+
+msgid "Lessons to charge"
+msgstr "Lessons to charge"
+
+msgid "Lessons balance after"
+msgstr "Lessons balance after"
+
