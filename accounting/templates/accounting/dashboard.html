@@ -27,24 +27,28 @@
                 <input type="hidden" name="action_type" value="process_session">
 
                 <div>
-                    <label for="client_session">{% trans "Client" %}:</label>
-                    <select id="client_session" name="client_id" required>
-                        <option value="">--- {% trans "Select client" %} ---</option>
+                    <label for="client_session_display">{% trans "Client" %}:</label>
+                    <input list="client_session_list" id="client_session_display" placeholder="{% trans 'Search client' %}"
+                           style="width:100%; padding:8px;">
+                    <input type="hidden" id="client_session" name="client_id" required>
+                    <datalist id="client_session_list">
                         {% for client in clients %}
-                            <option value="{{ client.id }}">{{ client.full_name }} ({% trans "Balance" %}: {{ client.balance }} / {% trans "Lessons" %}: {{ client.lessons_balance }})</option>
+                            <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN / {% trans "Lessons" %}: {{ client.lessons_balance }})"></option>
                         {% endfor %}
-                    </select>
+                    </datalist>
                     <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
                 </div>
 
                 <div>
-                    <label for="worker_session">{% trans "Worker" %}:</label>
-                    <select id="worker_session" name="worker_id" required>
-                        <option value="">--- {% trans "Select worker" %} ---</option>
+                    <label for="worker_session_display">{% trans "Worker" %}:</label>
+                    <input list="worker_session_list" id="worker_session_display" placeholder="{% trans 'Search worker' %}"
+                           style="width:100%; padding:8px;">
+                    <input type="hidden" id="worker_session" name="worker_id" required>
+                    <datalist id="worker_session_list">
                         {% for worker in workers %}
-                            <option value="{{ worker.id }}">{{ worker.user.username }}</option>
+                            <option data-id="{{ worker.id }}" value="{{ worker.user.username }}"></option>
                         {% endfor %}
-                    </select>
+                    </datalist>
                 </div>
 
                 <div>
@@ -68,13 +72,15 @@
                 <input type="hidden" name="action_type" value="deposit">
 
                 <div>
-                    <label for="client_deposit">{% trans "Client" %}:</label>
-                    <select id="client_deposit" name="client_id" required>
-                        <option value="">--- {% trans "Select client" %} ---</option>
+                    <label for="client_deposit_display">{% trans "Client" %}:</label>
+                    <input list="client_deposit_list" id="client_deposit_display" placeholder="{% trans 'Search client' %}"
+                           style="width:100%; padding:8px;">
+                    <input type="hidden" id="client_deposit" name="client_id" required>
+                    <datalist id="client_deposit_list">
                         {% for client in clients %}
-                            <option value="{{ client.id }}">{{ client.full_name }} ({% trans "Balance" %}: {{ client.balance }} / {% trans "Lessons" %}: {{ client.lessons_balance }})</option>
+                            <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN / {% trans "Lessons" %}: {{ client.lessons_balance }})"></option>
                         {% endfor %}
-                    </select>
+                    </datalist>
                     <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
                 </div>
 
@@ -174,4 +180,35 @@
             <p>{% trans "No operations yet." %}</p>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    function wireDatalist(displayId, hiddenId, listId) {
+        const display = document.getElementById(displayId);
+        const hidden = document.getElementById(hiddenId);
+        const options = Array.from(document.getElementById(listId).children);
+        if (!display || !hidden) return;
+
+        function tryMatch() {
+            const val = display.value.toLowerCase();
+            const match = options.find(o => o.value.toLowerCase() === val);
+            if (match) {
+                hidden.value = match.dataset.id;
+            } else {
+                hidden.value = '';
+            }
+        }
+
+        display.addEventListener('input', tryMatch);
+        display.addEventListener('change', tryMatch);
+        display.addEventListener('blur', tryMatch);
+    }
+
+    wireDatalist('client_session_display', 'client_session', 'client_session_list');
+    wireDatalist('worker_session_display', 'worker_session', 'worker_session_list');
+    wireDatalist('client_deposit_display', 'client_deposit', 'client_deposit_list');
+})();
+</script>
 {% endblock %}
