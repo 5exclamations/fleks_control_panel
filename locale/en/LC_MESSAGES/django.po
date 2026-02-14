@@ -360,3 +360,78 @@ msgstr "Lessons to charge"
 msgid "Lessons balance after"
 msgstr "Lessons balance after"
 
+msgid "Save as PDF"
+msgstr "Save as PDF"
+
+msgid "Search client"
+msgstr "Search client"
+
+msgid "Search worker"
+msgstr "Search worker"
+
+msgid "Top-up cancellation"
+msgstr "Top-up cancellation"
+
+msgid "Top-up cancellations"
+msgstr "Top-up cancellations"
+
+msgid "Top-up cancellation history"
+msgstr "Top-up cancellation history"
+
+msgid "Total top-up cancellations"
+msgstr "Total top-up cancellations"
+
+msgid "Removed amount"
+msgstr "Removed amount"
+
+msgid "Removed lessons"
+msgstr "Removed lessons"
+
+msgid "Cancel top-up and print receipt"
+msgstr "Cancel top-up and print receipt"
+
+msgid "geri qaytarma"
+msgstr "geri qaytarma"
+
+msgid "Silinən məbləğ"
+msgstr "Removed amount"
+
+msgid "Silinən dərs"
+msgstr "Removed lessons"
+
+msgid "Top-up cancellation completed successfully."
+msgstr "Top-up cancellation completed successfully."
+
+msgid "Invalid data. Enter valid amount and lessons."
+msgstr "Invalid data. Enter valid amount and lessons."
+
+msgid "Amount and lessons cannot be negative."
+msgstr "Amount and lessons cannot be negative."
+
+msgid "Enter amount or lessons to remove."
+msgstr "Enter amount or lessons to remove."
+
+msgid "Client has insufficient balance for this cancellation."
+msgstr "Client has insufficient balance for this cancellation."
+
+msgid "Client has insufficient lessons for this cancellation."
+msgstr "Client has insufficient lessons for this cancellation."
+
+msgid "You have been logged out."
+msgstr "You have been logged out."
+
+msgid "Adjustment #"
+msgstr "Adjustment #"
+
+msgid "Metric"
+msgstr "Metric"
+
+msgid "Value"
+msgstr "Value"
+
+msgid "Period"
+msgstr "Period"
+
+msgid "Generated at"
+msgstr "Generated at"
+

@@ -4,7 +4,6 @@
 {% block title %}{% trans "Control Panel" %}{% endblock %}
 
 {% block content %}
-    {% get_current_language as CURRENT_LANG %}
     <style>
         .dashboard-page button { margin-top: 0; }
         .dashboard-toolbar {
@@ -44,6 +43,7 @@
         }
         .operation-tag--session { background: #28a745; }
         .operation-tag--deposit { background: #17a2b8; }
+        .operation-tag--adjustment { background: #dc3545; }
         .dashboard-actions {
             display: flex;
             gap: 6px;
@@ -80,7 +80,7 @@
                     <input list="client_session_list"
                            id="client_session_display"
                            name="client_session_display"
-                              placeholder="{% if CURRENT_LANG == 'ru' %}Поиск клиента{% elif CURRENT_LANG == 'az' %}Müştəri axtar{% else %}Search client{% endif %}"
+                                    placeholder="{% trans 'Search client' %}"
                            autocomplete="off">
                     <input type="hidden" id="client_session" name="client_id" required>
                     <datalist id="client_session_list">
@@ -96,7 +96,7 @@
                     <input list="worker_session_list"
                            id="worker_session_display"
                            name="worker_session_display"
-                              placeholder="{% if CURRENT_LANG == 'ru' %}Поиск сотрудника{% elif CURRENT_LANG == 'az' %}Mütəxəssis axtar{% else %}Search worker{% endif %}"
+                              placeholder="{% trans 'Search worker' %}"
                               autocomplete="off">
                     <input type="hidden" id="worker_session" name="worker_id" required>
                     <datalist id="worker_session_list">
@@ -131,7 +131,7 @@
                     <input list="client_deposit_list"
                            id="client_deposit_display"
                            name="client_deposit_display"
-                              placeholder="{% if CURRENT_LANG == 'ru' %}Поиск клиента{% elif CURRENT_LANG == 'az' %}Müştəri axtar{% else %}Search client{% endif %}"
+                                    placeholder="{% trans 'Search client' %}"
                            autocomplete="off">
                     <input type="hidden" id="client_deposit" name="client_id" required>
                     <datalist id="client_deposit_list">
@@ -180,6 +180,8 @@
                     <td>
                         {% if op.type == 'transaction' %}
                             <span class="operation-tag operation-tag--session">{% trans "Session" %}</span>
+                        {% elif op.type == 'adjustment' %}
+                            <span class="operation-tag operation-tag--adjustment">{% trans "Top-up cancellation" %}</span>
                         {% else %}
                             <span class="operation-tag operation-tag--deposit">{% trans "Top-up" %}</span>
                         {% endif %}
@@ -187,6 +189,8 @@
                     <td>
                         {% if op.type == 'transaction' %}
                             <a href="{% url 'view_client' op.transaction.client.id %}" style="color: #007bff; text-decoration: none; font-weight: 600;">{{ op.transaction.client.full_name }}</a>
+                        {% elif op.type == 'adjustment' %}
+                            <a href="{% url 'view_client' op.adjustment.client.id %}" style="color: #007bff; text-decoration: none; font-weight: 600;">{{ op.adjustment.client.full_name }}</a>
                         {% else %}
                             <a href="{% url 'view_client' op.deposit.client.id %}" style="color: #007bff; text-decoration: none; font-weight: 600;">{{ op.deposit.client.full_name }}</a>
                         {% endif %}
@@ -201,6 +205,8 @@
                     <td>
                         {% if op.type == 'transaction' %}
                             {{ op.transaction.amount }} AZN
+                        {% elif op.type == 'adjustment' %}
+                            {{ op.adjustment.amount_removed }} AZN
                         {% else %}
                             {{ op.deposit.amount }} AZN
                         {% endif %}
@@ -208,6 +214,8 @@
                     <td>
                         {% if op.type == 'transaction' %}
                             {{ op.transaction.lessons_count }}
+                        {% elif op.type == 'adjustment' %}
+                            {{ op.adjustment.lessons_removed }}
                         {% else %}
                             {{ op.deposit.lessons_added }}
                         {% endif %}
@@ -215,6 +223,8 @@
                     <td>
                         {% if op.type == 'transaction' %}
                             #{{ op.transaction.id }}
+                        {% elif op.type == 'adjustment' %}
+                            #{{ op.adjustment.id }}
                         {% else %}
                             #{{ op.deposit.id }}
                         {% endif %}
@@ -224,6 +234,9 @@
                             {% if op.type == 'transaction' %}
                                 <a href="{% url 'view_receipt' op.transaction.id %}" class="btn-link btn-sm btn-info">{% trans "View" %}</a>
                                 <a href="{% url 'view_receipt' op.transaction.id %}?print=1" target="_blank" class="btn-link btn-sm btn-success">{% trans "Print" %}</a>
+                            {% elif op.type == 'adjustment' %}
+                                <a href="{% url 'view_adjustment_receipt' op.adjustment.id %}" class="btn-link btn-sm btn-info">{% trans "View" %}</a>
+                                <a href="{% url 'view_adjustment_receipt' op.adjustment.id %}?print=1" target="_blank" class="btn-link btn-sm btn-success">{% trans "Print" %}</a>
                             {% else %}
                                 <a href="{% url 'view_deposit_receipt' op.deposit.id %}" class="btn-link btn-sm btn-info">{% trans "View" %}</a>
                                 <a href="{% url 'view_deposit_receipt' op.deposit.id %}?print=1" target="_blank" class="btn-link btn-sm btn-success">{% trans "Print" %}</a>

@@ -257,6 +257,7 @@ def _generate_reports_pdf_response(context, as_attachment=False):
         [gettext('Metric'), gettext('Value')],
         [gettext('Total income (Sessions)'), f"{context.get('total_income', Decimal('0.00'))} AZN"],
         [gettext('Client top-ups'), f"{context.get('total_deposits', Decimal('0.00'))} AZN"],
+        [gettext('Top-up cancellations'), f"{context.get('total_adjustments', Decimal('0.00'))} AZN"],
     ]
 
     summary_table = Table(summary_data, colWidths=[220, 120])
@@ -496,9 +497,10 @@ def dashboard(request):
         if _has_new_client_fields():
             clients_qs = Client.objects.all().order_by('full_name')
             workers_qs = Worker.objects.all().order_by('user__username')
-            # Получаем последние транзакции и депозиты
+            # Получаем последние транзакции, депозиты и отмены пополнений
             recent_transactions = Transaction.objects.select_related('client', 'worker__user').order_by('-date_time')[:20]
             recent_deposits = ClientDeposit.objects.select_related('client').order_by('-date_time')[:20]
+            recent_adjustments = ClientBalanceAdjustment.objects.select_related('client').order_by('-date_time')[:20]
             
             # Объединяем в один список с пометкой типа
             recent_operations = []
@@ -515,6 +517,14 @@ def dashboard(request):
                     'date_time': dep.date_time,
                     'transaction': None,
                     'deposit': dep
+                })
+            for adj in recent_adjustments:
+                recent_operations.append({
+                    'type': 'adjustment',
+                    'date_time': adj.date_time,
+                    'transaction': None,
+                    'deposit': None,
+                    'adjustment': adj
                 })
             # Сортируем по дате и берем последние 20
             recent_operations = sorted(recent_operations, key=lambda x: x['date_time'], reverse=True)[:20]
@@ -607,6 +617,7 @@ def reports(request):
     if _has_new_client_fields():
         transactions_qs = Transaction.objects.select_related('client', 'worker__user').all()
         deposits_qs = ClientDeposit.objects.select_related('client').all()
+        adjustments_qs = ClientBalanceAdjustment.objects.select_related('client').all()
     else:
         # Если новые поля не существуют, показываем сообщение
         messages.error(request, gettext("Database migration required. Please run: python manage.py migrate"))
@@ -619,11 +630,13 @@ def reports(request):
     if start_date and end_date:
         transactions_qs = transactions_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
         deposits_qs = deposits_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
+        adjustments_qs = adjustments_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
 
     if selected_client_id:
         try:
             transactions_qs = transactions_qs.filter(client_id=int(selected_client_id))
             deposits_qs = deposits_qs.filter(client_id=int(selected_client_id))
+            adjustments_qs = adjustments_qs.filter(client_id=int(selected_client_id))
             selected_client = Client.objects.filter(id=int(selected_client_id)).first()
             if selected_client:
                 selected_client_name = selected_client.full_name
@@ -636,6 +649,7 @@ def reports(request):
             # У пополнений нет привязки к сотруднику, поэтому при фильтре по сотруднику
             # показываем только сеансы конкретного сотрудника.
             deposits_qs = deposits_qs.none()
+            adjustments_qs = adjustments_qs.none()
             selected_worker = Worker.objects.select_related('user').filter(id=int(selected_worker_id)).first()
             if selected_worker:
                 selected_worker_name = selected_worker.user.get_full_name() or selected_worker.user.username
@@ -648,16 +662,19 @@ def reports(request):
             transaction_id_int = int(transaction_id_search)
             transactions_qs = transactions_qs.filter(id=transaction_id_int)
             deposits_qs = deposits_qs.filter(id=transaction_id_int)
+            adjustments_qs = adjustments_qs.filter(id=transaction_id_int)
         except ValueError:
             messages.error(request, gettext("Invalid transaction number. Please enter a valid number."))
 
     total_income = transactions_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_deposits = deposits_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_adjustments = adjustments_qs.aggregate(Sum('amount_removed'))['amount_removed__sum'] or Decimal('0.00')
 
     context['total_income'] = total_income
     context['total_payouts'] = Decimal('0.00')
     context['total_deposits'] = total_deposits
-    context['net_profit'] = total_income
+    context['total_adjustments'] = total_adjustments
+    context['net_profit'] = total_income + total_deposits - total_adjustments
 
 
     unified_log = []
@@ -683,7 +700,21 @@ def reports(request):
             'amount_negative': None,
             'css_class': 'deposit',
             'deposit_id': deposit.id,
-            'is_deposit': True
+            'is_deposit': True,
+            'is_adjustment': False
+        })
+
+    for adjustment in adjustments_qs:
+        unified_log.append({
+            'date_time': adjustment.date_time,
+            'event_type': gettext('Top-up cancellation'),
+            'description': gettext('Client: %(client_name)s') % {'client_name': adjustment.client.full_name},
+            'amount_positive': None,
+            'amount_negative': adjustment.amount_removed,
+            'css_class': 'payout',
+            'adjustment_id': adjustment.id,
+            'is_deposit': False,
+            'is_adjustment': True
         })
 
 

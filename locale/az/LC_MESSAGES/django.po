@@ -434,3 +434,78 @@ msgstr "Silinəcək dərs sayı"
 msgid "Lessons balance after"
 msgstr "Dərs balansı (sonra)"
 
+msgid "Save as PDF"
+msgstr "PDF olaraq saxla"
+
+msgid "Search client"
+msgstr "Müştəri axtar"
+
+msgid "Search worker"
+msgstr "Mütəxəssis axtar"
+
+msgid "Top-up cancellation"
+msgstr "Geri qaytarma"
+
+msgid "Top-up cancellations"
+msgstr "Geri qaytarmalar"
+
+msgid "Top-up cancellation history"
+msgstr "Geri qaytarma tarixçəsi"
+
+msgid "Total top-up cancellations"
+msgstr "Ümumi geri qaytarmalar"
+
+msgid "Removed amount"
+msgstr "Silinən məbləğ"
+
+msgid "Removed lessons"
+msgstr "Silinən dərs"
+
+msgid "Cancel top-up and print receipt"
+msgstr "Geri qaytar və çeki çap et"
+
+msgid "geri qaytarma"
+msgstr "geri qaytarma"
+
+msgid "Silinən məbləğ"
+msgstr "Silinən məbləğ"
+
+msgid "Silinən dərs"
+msgstr "Silinən dərs"
+
+msgid "Top-up cancellation completed successfully."
+msgstr "Geri qaytarma uğurla tamamlandı."
+
+msgid "Invalid data. Enter valid amount and lessons."
+msgstr "Məlumat yanlışdır. Düzgün məbləğ və dərs sayı daxil edin."
+
+msgid "Amount and lessons cannot be negative."
+msgstr "Məbləğ və dərs sayı mənfi ola bilməz."
+
+msgid "Enter amount or lessons to remove."
+msgstr "Silmək üçün məbləğ və ya dərs sayı daxil edin."
+
+msgid "Client has insufficient balance for this cancellation."
+msgstr "Bu geri qaytarma üçün müştərinin balansı kifayət deyil."
+
+msgid "Client has insufficient lessons for this cancellation."
+msgstr "Bu geri qaytarma üçün müştərinin dərs sayı kifayət deyil."
+
+msgid "You have been logged out."
+msgstr "Siz sistemdən çıxış etdiniz."
+
+msgid "Adjustment #"
+msgstr "Geri qaytarma #"
+
+msgid "Metric"
+msgstr "Göstərici"
+
+msgid "Value"
+msgstr "Dəyər"
+
+msgid "Period"
+msgstr "Dövr"
+
+msgid "Generated at"
+msgstr "Yaranma vaxtı"
+

@@ -337,3 +337,78 @@ msgstr "Введите номер телефона"
 msgid "Enter referral source"
 msgstr "Введите источник информации"
 
+msgid "Save as PDF"
+msgstr "Сохранить как PDF"
+
+msgid "Search client"
+msgstr "Поиск клиента"
+
+msgid "Search worker"
+msgstr "Поиск сотрудника"
+
+msgid "Top-up cancellation"
+msgstr "Возврат пополнения"
+
+msgid "Top-up cancellations"
+msgstr "Возвраты пополнений"
+
+msgid "Top-up cancellation history"
+msgstr "История возвратов пополнений"
+
+msgid "Total top-up cancellations"
+msgstr "Всего возвратов пополнений"
+
+msgid "Removed amount"
+msgstr "Списанная сумма"
+
+msgid "Removed lessons"
+msgstr "Списанные уроки"
+
+msgid "Cancel top-up and print receipt"
+msgstr "Выполнить возврат и распечатать чек"
+
+msgid "geri qaytarma"
+msgstr "возврат"
+
+msgid "Silinən məbləğ"
+msgstr "Списанная сумма"
+
+msgid "Silinən dərs"
+msgstr "Списанные уроки"
+
+msgid "Top-up cancellation completed successfully."
+msgstr "Возврат пополнения успешно выполнен."
+
+msgid "Invalid data. Enter valid amount and lessons."
+msgstr "Некорректные данные. Введите корректную сумму и количество уроков."
+
+msgid "Amount and lessons cannot be negative."
+msgstr "Сумма и количество уроков не могут быть отрицательными."
+
+msgid "Enter amount or lessons to remove."
+msgstr "Введите сумму или количество уроков для списания."
+
+msgid "Client has insufficient balance for this cancellation."
+msgstr "Недостаточно баланса клиента для этого возврата."
+
+msgid "Client has insufficient lessons for this cancellation."
+msgstr "Недостаточно уроков клиента для этого возврата."
+
+msgid "You have been logged out."
+msgstr "Вы вышли из системы."
+
+msgid "Adjustment #"
+msgstr "Возврат #"
+
+msgid "Metric"
+msgstr "Показатель"
+
+msgid "Value"
+msgstr "Значение"
+
+msgid "Period"
+msgstr "Период"
+
+msgid "Generated at"
+msgstr "Сформировано"
+

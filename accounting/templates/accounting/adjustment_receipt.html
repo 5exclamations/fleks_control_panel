@@ -120,16 +120,16 @@
                 <span class="receipt-label">Pasiyent:</span> {{ adjustment.client.full_name }}
             </div>
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Operation type" %}:</span> {% trans "Top-up cancellation" %}
+                <span class="receipt-label">{% trans "Operation type" %}:</span> {% trans "geri qaytarma" %}
             </div>
         </div>
 
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Amount" %}:</span> - {{ adjustment.amount_removed }} AZN
+                <span class="receipt-label">{% trans "Silinən məbləğ" %}:</span> {{ adjustment.amount_removed }} AZN
             </div>
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Lessons" %}:</span> - {{ adjustment.lessons_removed }}
+                <span class="receipt-label">{% trans "Silinən dərs" %}:</span> {{ adjustment.lessons_removed }}
             </div>
         </div>
 
