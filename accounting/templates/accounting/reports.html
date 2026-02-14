@@ -41,19 +41,22 @@
     <div class="filter-section">
         <h2>{% trans "Filter" %}</h2>
         <div class="filter-buttons">
-            <a href="{% url 'reports' %}">{% trans "All time" %}</a>
-            <a href="{% url 'reports' %}?preset=today">{% trans "Today" %}</a>
-            <a href="{% url 'reports' %}?preset=week">{% trans "This week" %}</a>
-            <a href="{% url 'reports' %}?preset=month">{% trans "This month" %}</a>
+            <a href="{% url 'reports' %}{% if all_time_query_string %}?{{ all_time_query_string }}{% endif %}">{% trans "All time" %}</a>
+            <a href="{% url 'reports' %}?{{ today_query_string }}">{% trans "Today" %}</a>
+            <a href="{% url 'reports' %}?{{ week_query_string }}">{% trans "This week" %}</a>
+            <a href="{% url 'reports' %}?{{ month_query_string }}">{% trans "This month" %}</a>
         </div>
         <form method="GET" action="{% url 'reports' %}" class="custom-filter">
+            {% if current_preset %}
+                <input type="hidden" name="preset" value="{{ current_preset }}">
+            {% endif %}
             <div>
                 <label for="start_date">{% trans "Start date" %}:</label>
-                <input type="date" id="start_date" name="start_date" required value="{{ start_date_input }}">
+                <input type="date" id="start_date" name="start_date" value="{{ start_date_input }}">
             </div>
             <div>
                 <label for="end_date">{% trans "End date" %}:</label>
-                <input type="date" id="end_date" name="end_date" required value="{{ end_date_input }}">
+                <input type="date" id="end_date" name="end_date" value="{{ end_date_input }}">
             </div>
             <div>
                 <label for="client_id">{% trans "Client" %}:</label>

@@ -541,6 +541,7 @@ def reports(request):
         'current_filter_desc': gettext('all time'),
         'start_date_input': '',
         'end_date_input': '',
+        'current_preset': '',
     }
 
     selected_client_id = request.GET.get('client_id')
@@ -554,7 +555,11 @@ def reports(request):
     now = timezone.now().date()
     start_date = None
     end_date = None
-    preset = request.GET.get('preset')
+    preset = (request.GET.get('preset') or '').strip()
+    valid_presets = {'today', 'week', 'month'}
+    if preset not in valid_presets:
+        preset = ''
+    context['current_preset'] = preset
 
     if preset:
         if preset == 'today':
@@ -681,6 +686,30 @@ def reports(request):
     context['transaction_id_search'] = transaction_id_search
     context['selected_client_name'] = selected_client_name
     context['selected_worker_name'] = selected_worker_name
+
+    # Ссылки на пресеты с сохранением уже выбранных фильтров клиента/сотрудника
+    # и без ручного ввода дат.
+    preset_base_params = request.GET.copy()
+    preset_base_params.pop('preset', None)
+    preset_base_params.pop('start_date', None)
+    preset_base_params.pop('end_date', None)
+    preset_base_params.pop('export', None)
+    preset_base_params.pop('download', None)
+
+    all_time_query = preset_base_params.urlencode()
+    context['all_time_query_string'] = all_time_query
+
+    today_params = preset_base_params.copy()
+    today_params['preset'] = 'today'
+    context['today_query_string'] = today_params.urlencode()
+
+    week_params = preset_base_params.copy()
+    week_params['preset'] = 'week'
+    context['week_query_string'] = week_params.urlencode()
+
+    month_params = preset_base_params.copy()
+    month_params['preset'] = 'month'
+    context['month_query_string'] = month_params.urlencode()
 
     query_params = request.GET.copy()
     query_params.pop('export', None)
