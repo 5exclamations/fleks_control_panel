@@ -44,6 +44,7 @@
         .receipt-section {
             margin: 10px 0;
             padding: 5px 0;
+            border-bottom: 2px solid #000;
         }
         
         .receipt-line {
@@ -55,7 +56,6 @@
             margin: 5px 0;
             font-size: 12px;
             margin-bottom: 15px;
-            border-bottom: 2px solid #000;
             padding-bottom: 10px;
             font-weight: bold;
         }
@@ -150,20 +150,10 @@ Telefon: (055) 216-41-36
         
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Amount" %}:</span> {{ transaction.amount }} AZN
+                <span class="receipt-label">{% trans "Lessons" %} sayı:</span> {{ transaction.lessons_count }}
             </div>
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Lessons" %}:</span> {{ transaction.lessons_count }}
-            </div>
-        </div>
-
-        
-        <div class="receipt-section">
-            <div class="receipt-item">
-                <span class="receipt-label">{% trans "Balance" %}:</span> {{ transaction.balance_after|default:transaction.client.balance }} AZN
-            </div>
-            <div class="receipt-item">
-                <span class="receipt-label">{% trans "Lessons balance" %}:</span> {{ transaction.lessons_balance_after|default:transaction.client.lessons_balance }}
+                <span class="receipt-label">{% trans "Balance" %}(dərs sayı):</span> {{ transaction.lessons_balance_after|default:transaction.client.lessons_balance }}
             </div>
         </div>
 
@@ -171,7 +161,9 @@ Telefon: (055) 216-41-36
         <div class="receipt-footer">
             {% trans "Thank you!" %}
         </div>
-        
+        <div class="receipt-footer">
+            Sağlamlıq naminə peşəkarcasına və sevə sevə!
+        </div>
         <div class="receipt-number">
             {% trans "Transaction #" %}: {{ transaction.id }}
         </div>

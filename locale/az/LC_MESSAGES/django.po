@@ -226,8 +226,8 @@ msgstr "İşçi identifikatoru düzgün deyil."
 msgid "Session (Income)"
 msgstr "Sessiya (Gəlir)"
 
-msgid "Top-up"
-msgstr "Artırma"
+msgid "Balance top-up"
+msgstr "Balans artırma"
 
 msgid "Client: %(client_name)s"
 msgstr "Müştəri: %(client_name)s"
@@ -278,7 +278,7 @@ msgid "Address"
 msgstr "Ünvan"
 
 msgid "Phone"
-msgstr "Telefon"
+msgstr "Əlaqə"
 
 msgid "How did you hear about us?"
 msgstr "Mərkəzimiz haqqında haradan eşitdiniz?"
@@ -336,4 +336,23 @@ msgstr "Telefon nömrəsini daxil edin"
 
 msgid "Enter referral source"
 msgstr "Məlumat mənbəsini daxil edin"
+
+# Lessons related strings
+msgid "Lessons"
+msgstr "Dərs"
+
+msgid "Lessons balance"
+msgstr "Dərs balansı"
+
+msgid "Lessons added"
+msgstr "Əlavə olunan dərslər"
+
+msgid "Lessons to add"
+msgstr "Əlavə ediləcək dərs sayı"
+
+msgid "Lessons to charge"
+msgstr "Silinəcək dərs sayı"
+
+msgid "Lessons balance after"
+msgstr "Dərs balansı (sonra)"
 
