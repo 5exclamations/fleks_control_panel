@@ -4,6 +4,38 @@
 {% block title %}{% trans "Financial Reports" %}{% endblock %}
 
 {% block content %}
+    <style>
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: center;
+        }
+        .report-actions a {
+            background: #17a2b8;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .report-actions a:hover {
+            background: #138496;
+        }
+        @media print {
+            .no-print,
+            .navbar {
+                display: none !important;
+            }
+            body {
+                background: #fff;
+            }
+            .content {
+                margin: 0;
+            }
+        }
+    </style>
+
     <h1>{% trans "Financial Reports" %}</h1>
 
     <div class="filter-section">
@@ -43,6 +75,11 @@
             </div>
             <button type="submit">{% trans "Show period" %}</button>
         </form>
+
+        <div class="report-actions no-print">
+            <a href="{% url 'reports' %}?{{ export_query_string }}" target="_blank">{% trans "Save as PDF" %}</a>
+            <button type="button" onclick="window.print()">{% trans "Print" %}</button>
+        </div>
     </div>
 
     <h2>{% trans "Summary" %} <small>({{ current_filter_desc }})</small></h2>
@@ -95,3 +132,4 @@
     {% endif %}
 
 {% endblock %}
+

@@ -8,9 +8,14 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, gettext
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from io import BytesIO
 from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response, print_receipt_for_deposit
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 def _has_new_client_fields():
     """Проверяет, существуют ли новые поля в таблице Client"""
@@ -129,6 +134,118 @@ def print_receipt_for_session(transaction_record):
 
 def is_staff_user(user):
     return user.is_staff
+
+
+def _generate_reports_pdf_response(context):
+    """
+    Генерирует PDF-отчет на основе уже подготовленного контекста страницы отчетов.
+    """
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=24,
+        leftMargin=24,
+        topMargin=24,
+        bottomMargin=24,
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'ReportTitle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=15,
+        spaceAfter=8,
+    )
+    normal_style = ParagraphStyle(
+        'ReportNormal',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=12,
+    )
+
+    story = []
+    story.append(Paragraph(gettext('Financial Reports'), title_style))
+    story.append(Paragraph(f"{gettext('Period')}: {context.get('current_filter_desc', '')}", normal_style))
+
+    selected_client_name = context.get('selected_client_name')
+    selected_worker_name = context.get('selected_worker_name')
+    if selected_client_name:
+        story.append(Paragraph(f"{gettext('Client')}: {selected_client_name}", normal_style))
+    if selected_worker_name:
+        story.append(Paragraph(f"{gettext('Worker')}: {selected_worker_name}", normal_style))
+
+    story.append(Paragraph(
+        f"{gettext('Generated at')}: {timezone.localtime(timezone.now()).strftime('%d.%m.%Y %H:%M')}",
+        normal_style,
+    ))
+    story.append(Spacer(1, 10))
+
+    summary_data = [
+        [gettext('Metric'), gettext('Value')],
+        [gettext('Total income (Sessions)'), f"{context.get('total_income', Decimal('0.00'))} AZN"],
+        [gettext('Client top-ups'), f"{context.get('total_deposits', Decimal('0.00'))} AZN"],
+    ]
+
+    summary_table = Table(summary_data, colWidths=[220, 120])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#007bff')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    ]))
+    story.append(summary_table)
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph(gettext('Operation details'), ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontName='Helvetica-Bold',
+        fontSize=12,
+        spaceAfter=6,
+    )))
+
+    unified_log = context.get('unified_log') or []
+    if unified_log:
+        rows = [[gettext('Date and time'), gettext('Operation type'), gettext('Description'), gettext('Income (to cash)')]]
+        for event in unified_log:
+            amount_text = ''
+            if event.get('amount_positive') is not None:
+                amount_text = f"+ {event['amount_positive']}"
+            elif event.get('amount_negative') is not None:
+                amount_text = f"- {event['amount_negative']}"
+
+            rows.append([
+                event['date_time'].strftime('%d.%m.%Y %H:%M'),
+                str(event.get('event_type', '')),
+                str(event.get('description', '')),
+                amount_text,
+            ])
+
+        operations_table = Table(rows, colWidths=[95, 110, 240, 70], repeatRows=1)
+        operations_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#007bff')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+        story.append(operations_table)
+    else:
+        story.append(Paragraph(gettext('No operations found for the selected period.'), normal_style))
+
+    doc.build(story)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="financial_report.pdf"'
+    return response
 
 @login_required(login_url='/admin/login/') # Перенаправит на страницу логина админки
 @user_passes_test(is_staff_user, login_url='/admin/login/')
@@ -367,6 +484,13 @@ def reports(request):
         'end_date_input': '',
     }
 
+    selected_client_id = request.GET.get('client_id')
+    selected_worker_id = request.GET.get('worker_id')
+    transaction_id_search = request.GET.get('transaction_id', '').strip()
+
+    selected_client_name = ''
+    selected_worker_name = ''
+
     # date filtration
     now = timezone.now().date()
     start_date = None
@@ -420,21 +544,22 @@ def reports(request):
         transactions_qs = transactions_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
         deposits_qs = deposits_qs.filter(date_time__date__gte=start_date, date_time__date__lte=end_date)
 
-
-    selected_client_id = request.GET.get('client_id')
-    selected_worker_id = request.GET.get('worker_id')
-    transaction_id_search = request.GET.get('transaction_id', '').strip()
-
     if selected_client_id:
         try:
             transactions_qs = transactions_qs.filter(client_id=int(selected_client_id))
             deposits_qs = deposits_qs.filter(client_id=int(selected_client_id))
+            selected_client = Client.objects.filter(id=int(selected_client_id)).first()
+            if selected_client:
+                selected_client_name = selected_client.full_name
         except ValueError:
             messages.error(request, gettext("Invalid client identifier."))
 
     if selected_worker_id:
         try:
             transactions_qs = transactions_qs.filter(worker_id=int(selected_worker_id))
+            selected_worker = Worker.objects.select_related('user').filter(id=int(selected_worker_id)).first()
+            if selected_worker:
+                selected_worker_name = selected_worker.user.get_full_name() or selected_worker.user.username
         except ValueError:
             messages.error(request, gettext("Invalid worker identifier."))
 
@@ -495,6 +620,16 @@ def reports(request):
     context['selected_client_id'] = selected_client_id or ''
     context['selected_worker_id'] = selected_worker_id or ''
     context['transaction_id_search'] = transaction_id_search
+    context['selected_client_name'] = selected_client_name
+    context['selected_worker_name'] = selected_worker_name
+
+    query_params = request.GET.copy()
+    query_params.pop('export', None)
+    export_query = query_params.urlencode()
+    context['export_query_string'] = f"{export_query}&export=pdf" if export_query else "export=pdf"
+
+    if (request.GET.get('export') or '').lower() == 'pdf':
+        return _generate_reports_pdf_response(context)
 
     return render(request, 'accounting/reports.html', context)
 
