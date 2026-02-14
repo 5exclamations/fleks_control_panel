@@ -5,7 +5,11 @@
     <meta charset="UTF-8">
     <title>{% block title %}{% trans "Control Panel" %}{% endblock %}</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
+        body {
+            font-family: "Segoe UI", "Noto Sans", Arial, sans-serif;
+            margin: 0;
+            background: #f4f4f4;
+        }
         h1, h2, h3 { color: #333; }
         .content {
             margin: 20px;
@@ -29,7 +33,12 @@
         }
         .navbar a { color: white; text-decoration: none; padding: 0 10px; transition: color 0.2s; }
         .navbar a:hover { color: #007bff; }
-        .navbar .logo { font-size: 1.2em; font-weight: bold; color: white; }
+        .navbar .logo {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: white;
+            font-family: "Segoe UI", "Noto Sans", Arial, sans-serif;
+        }
         .nav-links {
             display: flex;
             align-items: center;
