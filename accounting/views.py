@@ -4,6 +4,7 @@ from django.db import transaction, connection
 from django.db.utils import ProgrammingError
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, gettext
 from datetime import datetime, timedelta
@@ -137,6 +138,16 @@ def print_receipt_for_session(transaction_record):
 
 def is_staff_user(user):
     return user.is_staff
+
+
+def logout_user(request):
+    """
+    Выход из аккаунта из верхней панели.
+    """
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, gettext('You have been logged out.'))
+    return redirect('/admin/login/')
 
 
 def _get_reports_pdf_font_names():
