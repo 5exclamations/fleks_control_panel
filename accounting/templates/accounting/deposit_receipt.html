@@ -1,0 +1,189 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Receipt" %} №{{ deposit.id }}</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none; }
+            .receipt-container { 
+                box-shadow: none;
+                border: none;
+                padding: 1mm;
+            }
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .receipt-container {
+        font-size: 20px
+            width: 80mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .receipt-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        
+        .receipt-section {
+            margin: 10px 0;
+            padding: 5px 0;
+        }
+        
+        .receipt-line {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+        
+        .receipt-item {
+            margin: 5px 0;
+            font-size: 12px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .receipt-label {
+            font-weight: bold;
+        }
+        
+        .receipt-amount {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .receipt-footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .receipt-number {
+            font-size: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+        }
+        
+        .action-buttons button, .action-buttons a {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .action-buttons button:hover, .action-buttons a:hover {
+            background: #0056b3;
+        }
+        
+        .action-buttons .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .action-buttons .btn-secondary:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt-header">
+            FLEKS Neyropsixoloji Korreksiya Mərkəzi
+        </div>
+
+        <div class="receipt-section">
+            <div class="receipt-item">
+            Ünvan:Bakı şəhəri, Nərimanov Rayonu,
+                Əhməd Rəcəbli 3, m.22 </div>
+            <div class="receipt-item">
+Telefon: (055) 216-41-36
+                </div>
+        </div>
+
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Date" %}:</span> {{ date_str }}
+            </div>
+        </div>
+
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">Pasiyent:</span> {{ deposit.client.full_name }}
+            </div>
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Operation type" %}:</span> {% trans "Top-up" %}
+            </div>
+        </div>
+
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Amount" %}:</span> {{ deposit.amount }} AZN
+            </div>
+        </div>
+
+        
+        <div class="receipt-section">
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Balance" %}:</span> {{ deposit.client.balance }} AZN
+            </div>
+        </div>
+
+        
+        <div class="receipt-footer">
+            {% trans "Thank you!" %}
+        </div>
+        
+        <div class="receipt-number">
+            {% trans "Deposit #" %}: {{ deposit.id }}
+        </div>
+    </div>
+    
+    <div class="action-buttons no-print">
+        <button onclick="window.print()">{% trans "Print" %}</button>
+        <a href="{% url 'dashboard' %}" class="btn-secondary">{% trans "Back" %}</a>
+    </div>
+    
+    <script>
+        // Автоматически открыть диалог печати если есть параметр ?print=1 в URL
+        if (window.location.search.includes('print=1')) {
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                }, 250);
+            };
+        }
+    </script>
+</body>
+</html>

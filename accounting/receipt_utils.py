@@ -91,6 +91,9 @@ def generate_pdf_receipt(transaction):
     # Сумма
     story.append(Paragraph(f"<b>{_('Amount')}:</b> {transaction.amount} AZN", normal_style))
     story.append(Spacer(1, 2*mm))
+    story.append(Paragraph(f"<b>{_('Lessons')}:</b> {transaction.lessons_count}", normal_style))
+    story.append(Spacer(1, 2*mm))
+    story.append(Spacer(1, 2*mm))
     
     # Разделитель
     story.append(Paragraph("─" * 30, center_style))
@@ -98,6 +101,8 @@ def generate_pdf_receipt(transaction):
     
     # Баланс клиента
     story.append(Paragraph(f"<b>{_('Balance')}:</b> {transaction.client.balance} AZN", normal_style))
+    story.append(Spacer(1, 2*mm))
+    story.append(Paragraph(f"<b>{_('Lessons balance')}:</b> {transaction.client.lessons_balance}", normal_style))
     story.append(Spacer(1, 3*mm))
     
     # Разделитель
@@ -220,4 +225,111 @@ def generate_receipt_response(transaction, format='pdf', request=None):
             html = render_to_string('accounting/receipt.html', context)
             
         return HttpResponse(html)
+
+
+def print_to_thermal_printer_deposit(deposit, printer_path=None):
+    """
+    Печатает чек для пополнения баланса на термопринтере используя python-escpos
+    """
+    try:
+        from escpos.printer import Usb, Serial, Network, File
+        
+        # Определяем путь к принтеру
+        if printer_path is None:
+            # Пытаемся найти принтер автоматически
+            # Для USB принтера (Linux)
+            if os.path.exists('/dev/usb/lp0'):
+                printer = File('/dev/usb/lp0')
+            # Для Windows COM порт
+            elif os.name == 'nt':
+                # По умолчанию COM1, можно настроить в settings
+                com_port = getattr(settings, 'RECEIPT_PRINTER_PORT', 'COM1')
+                printer = Serial(com_port, baudrate=9600)
+            # Для сетевого принтера
+            elif hasattr(settings, 'RECEIPT_PRINTER_IP'):
+                printer = Network(settings.RECEIPT_PRINTER_IP)
+            else:
+                # Файловый вывод (для тестирования)
+                receipt_file = os.path.join(settings.BASE_DIR, 'receipts', f'deposit_{deposit.id}.txt')
+                os.makedirs(os.path.dirname(receipt_file), exist_ok=True)
+                printer = File(receipt_file)
+        else:
+            printer = File(printer_path)
+        
+        # Печать чека
+        printer.set(align='center', font='a', width=1, height=2)
+        printer.text("FLEKS\n")
+        printer.set(align='center', font='a', width=1, height=1)
+        printer.text("\n")
+        
+        date_str = deposit.date_time.strftime('%d.%m.%Y %H:%M:%S')
+        printer.set(align='left', font='a', width=1, height=1)
+        printer.text(f"{_('Date')}: {date_str}\n")
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.text(f"{_('Client')}: {deposit.client.full_name}\n")
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.text(f"{_('Operation type')}: {_('Top-up')}\n")
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.text("\n")
+        printer.set(align='left', font='a', width=2, height=2)
+        printer.text(f"{_('Amount')}: {deposit.amount} AZN\n")
+        printer.set(align='left', font='a', width=1, height=1)
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.text(f"{_('Balance')}: {deposit.client.balance} AZN\n")
+        printer.text("─" * 32 + "\n\n")
+        
+        printer.set(align='center', font='a', width=1, height=1)
+        printer.text(f"{_('Thank you!')}\n\n")
+        printer.text(f"{_('Deposit #')}: {deposit.id}\n\n")
+        
+        # Отрезка чека
+        printer.cut()
+        printer.close()
+        
+        return True
+        
+    except ImportError:
+        # Если библиотека не установлена, просто логируем
+        print(f"python-escpos не установлен. Чек не может быть напечатан на принтере.")
+        return False
+    except Exception as e:
+        print(f"Ошибка при печати на принтер: {e}")
+        return False
+
+
+def print_receipt_for_deposit(deposit):
+    """
+    Печатает чек для пополнения баланса на принтер
+    """
+    try:
+        # Пытаемся напечатать на термопринтер
+        print_success = print_to_thermal_printer_deposit(deposit)
+        
+        if not print_success:
+            # Если печать на принтер не удалась, выводим в консоль для отладки
+            receipt_data = f"""
+*** ПСИХОЛОГИЧЕСКИЙ ЦЕНТР ***
+Дата: {deposit.date_time.strftime('%Y-%m-%d %H:%M:%S')}
+---
+Клиент: {deposit.client.full_name}
+---
+Операция: Пополнение баланса
+Сумма: {deposit.amount} AZN
+---
+Баланс клиента: {deposit.client.balance} AZN
+---
+Спасибо!
+Номер пополнения: {deposit.id}
+"""
+            print("\n" + "=" * 40)
+            print("--- ПЕЧАТЬ ЧЕКА (ПОПОЛНЕНИЕ) ---")
+            print(receipt_data)
+            print("=" * 40 + "\n")
+        
+    except Exception as e:
+        print(f"Ошибка при печати чека: {e}")
 

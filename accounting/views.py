@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response
+from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response, print_receipt_for_deposit
 
 def _has_new_client_fields():
     """Проверяет, существуют ли новые поля в таблице Client"""
@@ -37,25 +37,36 @@ def deposit_funds(request, client_id, amount):
 
 
 @transaction.atomic
-def process_session_payment(request, client_id, worker_id, session_cost):
+def process_session_payment(request, client_id, worker_id, session_cost, lessons_count=0):
     session_cost = Decimal(session_cost)
+    lessons_count = int(lessons_count or 0)
 
     try:
         client = Client.objects.select_for_update().get(id=client_id)
         worker = Worker.objects.get(id=worker_id)
 
+        if lessons_count < 0:
+            messages.error(request, "Error: Lessons count cannot be negative.")
+            return HttpResponse("Error: Invalid lessons count", status=400)
+
         if client.balance < session_cost:
-            messages.error(request, f"Ошибка: Недостаточно средств на балансе клиента {client.full_name}.")
+            messages.error(request, f"????????????: ???????????????????????? ?????????????? ???? ?????????????? ?????????????? {client.full_name}.")
             return HttpResponse("Error: Insufficient funds", status=400)
 
-            # taking money from balance of a client
+        if client.lessons_balance < lessons_count:
+            messages.error(request, f"Error: Client {client.full_name} has insufficient lessons.")
+            return HttpResponse("Error: Insufficient lessons", status=400)
+
+        # taking money from balance of a client
         client.balance -= session_cost
+        client.lessons_balance -= lessons_count
         client.save()
         transaction_record = Transaction.objects.create(
             client=client,
             worker=worker,
             amount=session_cost,
-            receipt_printed=False
+            receipt_printed=False,
+            lessons_count=lessons_count
         )
 
         messages.success(request, "Оплата сеанса прошла успешно.")
@@ -127,18 +138,37 @@ def dashboard(request):
             try:
                 client_id = request.POST.get('client_id')
                 amount_str = request.POST.get('deposit_amount')
+                lessons_count_str = request.POST.get('deposit_lessons', '').strip()
 
-                if not client_id or not amount_str or Decimal(amount_str) <= 0:
-                    messages.error(request, gettext("Error: Client not selected or top-up amount is incorrect."))
+                if not client_id or not amount_str or lessons_count_str == '':
+                    messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
+                    return redirect('dashboard')
+
+                try:
+                    amount = Decimal(amount_str)
+                    lessons_added = int(lessons_count_str)
+                except (ValueError, TypeError):
+                    messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
+                    return redirect('dashboard')
+
+                if amount <= 0 or lessons_added < 0:
+                    messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
                     return redirect('dashboard')
 
                 client = Client.objects.get(id=client_id)
-                amount = Decimal(amount_str)
 
                 with transaction.atomic():
                     client.balance += amount
+                    client.lessons_balance += lessons_added
                     client.save()
-                    ClientDeposit.objects.create(client=client, amount=amount)
+                    deposit = ClientDeposit.objects.create(
+                        client=client,
+                        amount=amount,
+                        lessons_added=lessons_added
+                    )
+                    
+                    # Печатаем чек для пополнения
+                    print_receipt_for_deposit(deposit)
 
                 messages.success(request, gettext("Client %(client_name)s balance successfully topped up by %(amount)s.") % {
                     'client_name': client.full_name,
@@ -156,12 +186,22 @@ def dashboard(request):
                 client_id = request.POST.get('client_id')
                 worker_id = request.POST.get('worker_id')
                 cost_str = request.POST.get('session_cost')
+                lessons_count_str = request.POST.get('session_lessons', '').strip()
 
-                if not client_id or not worker_id or not cost_str or Decimal(cost_str) <= 0:
+                if not client_id or not worker_id or not cost_str or lessons_count_str == '':
                     messages.error(request, gettext("Session error: Data is incorrect."))
                     return redirect('dashboard')
 
-                session_cost = Decimal(cost_str)
+                try:
+                    session_cost = Decimal(cost_str)
+                    lessons_count = int(lessons_count_str)
+                except (ValueError, TypeError):
+                    messages.error(request, gettext("Session error: Data is incorrect."))
+                    return redirect('dashboard')
+
+                if session_cost <= 0 or lessons_count <= 0:
+                    messages.error(request, gettext("Session error: Data is incorrect."))
+                    return redirect('dashboard')
 
                 with transaction.atomic():
                     client = Client.objects.select_for_update().get(id=client_id)
@@ -173,7 +213,14 @@ def dashboard(request):
                         })
                         return redirect('dashboard')
 
+                    if client.lessons_balance < lessons_count:
+                        messages.error(request, gettext("Error: Client %(client_name)s has insufficient lessons.") % {
+                            'client_name': client.full_name
+                        })
+                        return redirect('dashboard')
+
                     client.balance -= session_cost
+                    client.lessons_balance -= lessons_count
                     client.save()
 
 
@@ -181,7 +228,8 @@ def dashboard(request):
                         client=client,
                         worker=worker,
                         amount=session_cost,
-                        receipt_printed=False
+                        receipt_printed=False,
+                        lessons_count=lessons_count
                     )
 
                     messages.success(request, gettext("Session payment processed successfully."))
@@ -203,13 +251,35 @@ def dashboard(request):
         if _has_new_client_fields():
             clients_qs = Client.objects.all()
             workers_qs = Worker.objects.all()
+            # Получаем последние транзакции и депозиты
             recent_transactions = Transaction.objects.select_related('client', 'worker__user').order_by('-date_time')[:20]
+            recent_deposits = ClientDeposit.objects.select_related('client').order_by('-date_time')[:20]
+            
+            # Объединяем в один список с пометкой типа
+            recent_operations = []
+            for tx in recent_transactions:
+                recent_operations.append({
+                    'type': 'transaction',
+                    'date_time': tx.date_time,
+                    'transaction': tx,
+                    'deposit': None
+                })
+            for dep in recent_deposits:
+                recent_operations.append({
+                    'type': 'deposit',
+                    'date_time': dep.date_time,
+                    'transaction': None,
+                    'deposit': dep
+                })
+            # Сортируем по дате и берем последние 20
+            recent_operations = sorted(recent_operations, key=lambda x: x['date_time'], reverse=True)[:20]
         else:
             # Используем только существующие поля до применения миграции
             messages.warning(request, gettext("Database migration required. Please run: python manage.py migrate"))
             clients_qs = []
             workers_qs = Worker.objects.all()
             recent_transactions = []
+            recent_operations = []
 
         if client_q:
             clients_qs = clients_qs.filter(full_name__icontains=client_q)
@@ -224,6 +294,7 @@ def dashboard(request):
             'clients': clients_qs,
             'workers': workers_qs,
             'recent_transactions': recent_transactions,
+            'recent_operations': recent_operations if _has_new_client_fields() else [],
             'client_q': client_q,
             'worker_q': worker_q,
         }
@@ -295,6 +366,7 @@ def reports(request):
 
     selected_client_id = request.GET.get('client_id')
     selected_worker_id = request.GET.get('worker_id')
+    transaction_id_search = request.GET.get('transaction_id', '').strip()
 
     if selected_client_id:
         try:
@@ -308,6 +380,15 @@ def reports(request):
             transactions_qs = transactions_qs.filter(worker_id=int(selected_worker_id))
         except ValueError:
             messages.error(request, gettext("Invalid worker identifier."))
+
+    # Поиск по номеру транзакции (сеансы и депозиты)
+    if transaction_id_search:
+        try:
+            transaction_id_int = int(transaction_id_search)
+            transactions_qs = transactions_qs.filter(id=transaction_id_int)
+            deposits_qs = deposits_qs.filter(id=transaction_id_int)
+        except ValueError:
+            messages.error(request, gettext("Invalid transaction number. Please enter a valid number."))
 
     total_income = transactions_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_deposits = deposits_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
@@ -327,7 +408,9 @@ def reports(request):
             'description': f"{tx.client.full_name} -> {tx.worker.user.username}",
             'amount_positive': tx.amount,
             'amount_negative': None,
-            'css_class': 'income'
+            'css_class': 'income',
+            'transaction_id': tx.id,
+            'is_deposit': False
         })
 
     for deposit in deposits_qs:
@@ -337,7 +420,9 @@ def reports(request):
             'description': gettext('Client: %(client_name)s') % {'client_name': deposit.client.full_name},
             'amount_positive': deposit.amount,
             'amount_negative': None,
-            'css_class': 'deposit'
+            'css_class': 'deposit',
+            'deposit_id': deposit.id,
+            'is_deposit': True
         })
 
 
@@ -352,6 +437,7 @@ def reports(request):
     context['workers'] = Worker.objects.select_related('user').all()
     context['selected_client_id'] = selected_client_id or ''
     context['selected_worker_id'] = selected_worker_id or ''
+    context['transaction_id_search'] = transaction_id_search
 
     return render(request, 'accounting/reports.html', context)
 
@@ -432,6 +518,41 @@ def download_receipt_pdf(request, transaction_id):
 
 @login_required(login_url='/admin/login/')
 @user_passes_test(is_staff_user, login_url='/admin/login/')
+def view_deposit_receipt(request, deposit_id, format='html'):
+    """
+    Просмотр чека пополнения баланса в браузере (HTML)
+    """
+    deposit = get_object_or_404(
+        ClientDeposit.objects.select_related('client'), 
+        id=deposit_id
+    )
+    
+    context = {
+        'deposit': deposit,
+        'date_str': deposit.date_time.strftime('%d.%m.%Y %H:%M:%S'),
+    }
+    
+    return render(request, 'accounting/deposit_receipt.html', context)
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def print_deposit_receipt(request, deposit_id):
+    """
+    Печатает чек пополнения на физический принтер (если настроен)
+    """
+    deposit = get_object_or_404(ClientDeposit.objects.select_related('client'), id=deposit_id)
+    try:
+        print_receipt_for_deposit(deposit)
+        messages.success(request, gettext("Receipt sent to printer successfully."))
+    except Exception as e:
+        messages.error(request, gettext("Failed to print receipt: %(error)s") % {'error': e})
+    next_url = request.META.get('HTTP_REFERER') or 'dashboard'
+    return redirect(next_url)
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
 def create_client(request):
     """
     Создание нового клиента
@@ -444,7 +565,9 @@ def create_client(request):
             phone = request.POST.get('phone', '').strip()
             referral_source = request.POST.get('referral_source', '').strip()
             client_type = request.POST.get('client_type', 'adult')
+            lessons_balance_str = request.POST.get('lessons_balance', '').strip()
             initial_balance_str = request.POST.get('initial_balance', '0').strip()
+            initial_lessons_str = request.POST.get('initial_lessons', '0').strip()
 
             if not full_name:
                 messages.error(request, gettext("Error: Client name is required."))
@@ -474,6 +597,21 @@ def create_client(request):
                     })
 
             initial_balance = Decimal(initial_balance_str) if initial_balance_str else Decimal('0.00')
+            try:
+                initial_lessons = int(initial_lessons_str) if initial_lessons_str else 0
+            except (ValueError, TypeError):
+                messages.error(request, gettext("Invalid lessons count. Use a whole number."))
+                return render(request, 'accounting/create_client.html', {
+                    'client_types': Client.CLIENT_TYPE_CHOICES,
+                    'form_data': request.POST
+                })
+
+            if initial_lessons < 0:
+                messages.error(request, gettext("Invalid lessons count. Use a whole number."))
+                return render(request, 'accounting/create_client.html', {
+                    'client_types': Client.CLIENT_TYPE_CHOICES,
+                    'form_data': request.POST
+                })
 
             # Создаем нового клиента
             new_client = Client.objects.create(
@@ -483,7 +621,8 @@ def create_client(request):
                 phone=phone,
                 referral_source=referral_source,
                 client_type=client_type,
-                balance=initial_balance
+                balance=initial_balance,
+                lessons_balance=initial_lessons
             )
 
             messages.success(request, gettext("Client %(client_name)s created successfully.") % {
@@ -557,6 +696,7 @@ def edit_client(request, client_id):
             phone = request.POST.get('phone', '').strip()
             referral_source = request.POST.get('referral_source', '').strip()
             client_type = request.POST.get('client_type', 'adult')
+            lessons_balance_str = request.POST.get('lessons_balance', '').strip()
 
             if not full_name:
                 messages.error(request, gettext("Error: Client name is required."))
