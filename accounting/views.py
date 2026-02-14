@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _, gettext
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
+import os
 from .models import Client, Worker, Transaction, ClientDeposit
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response, print_receipt_for_deposit
@@ -16,6 +17,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 def _has_new_client_fields():
     """Проверяет, существуют ли новые поля в таблице Client"""
@@ -136,7 +139,60 @@ def is_staff_user(user):
     return user.is_staff
 
 
-def _generate_reports_pdf_response(context):
+def _get_reports_pdf_font_names():
+    """
+    Возвращает шрифты для PDF с поддержкой азербайджанских символов.
+    """
+    # Порядок важен: сначала Windows (текущий проект), затем Unix fallback.
+    font_candidates = [
+        {
+            'normal': r'C:\Windows\Fonts\arial.ttf',
+            'bold': r'C:\Windows\Fonts\arialbd.ttf',
+            'normal_name': 'FleksArial',
+            'bold_name': 'FleksArialBold',
+        },
+        {
+            'normal': r'C:\Windows\Fonts\segoeui.ttf',
+            'bold': r'C:\Windows\Fonts\segoeuib.ttf',
+            'normal_name': 'FleksSegoeUI',
+            'bold_name': 'FleksSegoeUIBold',
+        },
+        {
+            'normal': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            'bold': '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            'normal_name': 'FleksDejaVuSans',
+            'bold_name': 'FleksDejaVuSansBold',
+        },
+    ]
+
+    for candidate in font_candidates:
+        normal_path = candidate['normal']
+        bold_path = candidate['bold']
+        normal_name = candidate['normal_name']
+        bold_name = candidate['bold_name']
+
+        if not os.path.exists(normal_path):
+            continue
+
+        try:
+            registered_fonts = pdfmetrics.getRegisteredFontNames()
+            if normal_name not in registered_fonts:
+                pdfmetrics.registerFont(TTFont(normal_name, normal_path))
+
+            if os.path.exists(bold_path):
+                if bold_name not in registered_fonts:
+                    pdfmetrics.registerFont(TTFont(bold_name, bold_path))
+                return normal_name, bold_name
+
+            return normal_name, normal_name
+        except Exception:
+            continue
+
+    # Fallback: если TTF не удалось загрузить.
+    return 'Helvetica', 'Helvetica-Bold'
+
+
+def _generate_reports_pdf_response(context, as_attachment=False):
     """
     Генерирует PDF-отчет на основе уже подготовленного контекста страницы отчетов.
     """
@@ -150,18 +206,20 @@ def _generate_reports_pdf_response(context):
         bottomMargin=24,
     )
 
+    normal_font, bold_font = _get_reports_pdf_font_names()
+
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
         'ReportTitle',
         parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
+        fontName=bold_font,
         fontSize=15,
         spaceAfter=8,
     )
     normal_style = ParagraphStyle(
         'ReportNormal',
         parent=styles['Normal'],
-        fontName='Helvetica',
+        fontName=normal_font,
         fontSize=9,
         leading=12,
     )
@@ -193,9 +251,9 @@ def _generate_reports_pdf_response(context):
     summary_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#007bff')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 0), (-1, 0), bold_font),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 1), (-1, -1), normal_font),
     ]))
     story.append(summary_table)
     story.append(Spacer(1, 12))
@@ -203,7 +261,7 @@ def _generate_reports_pdf_response(context):
     story.append(Paragraph(gettext('Operation details'), ParagraphStyle(
         'SectionTitle',
         parent=styles['Heading2'],
-        fontName='Helvetica-Bold',
+        fontName=bold_font,
         fontSize=12,
         spaceAfter=6,
     )))
@@ -229,8 +287,8 @@ def _generate_reports_pdf_response(context):
         operations_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#007bff')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTNAME', (0, 0), (-1, 0), bold_font),
+            ('FONTNAME', (0, 1), (-1, -1), normal_font),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
@@ -244,7 +302,8 @@ def _generate_reports_pdf_response(context):
     buffer.close()
 
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="financial_report.pdf"'
+    disposition = 'attachment' if as_attachment else 'inline'
+    response['Content-Disposition'] = f'{disposition}; filename="financial_report.pdf"'
     return response
 
 @login_required(login_url='/admin/login/') # Перенаправит на страницу логина админки
@@ -625,11 +684,15 @@ def reports(request):
 
     query_params = request.GET.copy()
     query_params.pop('export', None)
+    query_params.pop('download', None)
     export_query = query_params.urlencode()
-    context['export_query_string'] = f"{export_query}&export=pdf" if export_query else "export=pdf"
+    export_pdf_base_query = f"{export_query}&export=pdf" if export_query else "export=pdf"
+    context['export_pdf_download_query_string'] = f"{export_pdf_base_query}&download=1"
+    context['export_pdf_print_query_string'] = export_pdf_base_query
 
     if (request.GET.get('export') or '').lower() == 'pdf':
-        return _generate_reports_pdf_response(context)
+        as_attachment = (request.GET.get('download') or '').lower() in ('1', 'true', 'yes')
+        return _generate_reports_pdf_response(context, as_attachment=as_attachment)
 
     return render(request, 'accounting/reports.html', context)
 

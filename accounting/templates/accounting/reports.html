@@ -77,8 +77,8 @@
         </form>
 
         <div class="report-actions no-print">
-            <a href="{% url 'reports' %}?{{ export_query_string }}" target="_blank">{% trans "Save as PDF" %}</a>
-            <button type="button" onclick="window.print()">{% trans "Print" %}</button>
+            <a href="{% url 'reports' %}?{{ export_pdf_download_query_string }}" target="_blank">{% trans "Save as PDF" %}</a>
+            <a href="{% url 'reports' %}?{{ export_pdf_print_query_string }}" target="_blank">{% trans "Print" %}</a>
         </div>
     </div>
 
@@ -116,11 +116,6 @@
                     <td>
                         {% if event.amount_positive %}
                             + {{ event.amount_positive }}
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if event.amount_negative %}
-                            - {{ event.amount_negative }}
                         {% endif %}
                     </td>
                 </tr>
