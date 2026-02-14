@@ -95,18 +95,6 @@
                 </select>
             </div>
 
-            <div>
-                <label for="lessons_balance">{% trans "Lessons balance" %}:</label>
-                <input
-                    type="number"
-                    id="lessons_balance"
-                    name="lessons_balance"
-                    min="0"
-                    step="1"
-                    value="{{ form.lessons_balance|default:client.lessons_balance }}"
-                >
-            </div>
-
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit">{% trans "Save changes" %}</button>
                 <a href="{% url 'view_client' client.id %}" style="background: #6c757d; color: white; padding: 12px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">

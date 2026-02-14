@@ -328,6 +328,9 @@ msgstr "Yaradılma tarixi"
 msgid "View receipt"
 msgstr "Çekə bax"
 
+msgid "Clients"
+msgstr "Kliyentlər"
+
 msgid "Enter client address"
 msgstr "Müştəri ünvanını daxil edin"
 
