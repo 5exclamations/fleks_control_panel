@@ -159,3 +159,31 @@ class ClientDeposit(models.Model):
         verbose_name = "Пополнение клиента"
         verbose_name_plural = "Пополнения клиентов"
         ordering = ['-date_time']
+
+
+class ClientBalanceAdjustment(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='balance_adjustments')
+    amount_removed = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Списанная сумма")
+    lessons_removed = models.PositiveIntegerField(default=0, verbose_name="Списанные уроки")
+    date_time = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время")
+
+    balance_after = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Balance after"
+    )
+    lessons_balance_after = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Lessons balance after"
+    )
+
+    def __str__(self):
+        return f"Отмена пополнения {self.client.full_name} на {self.amount_removed}"
+
+    class Meta:
+        verbose_name = "Отмена пополнения"
+        verbose_name_plural = "Отмены пополнений"
+        ordering = ['-date_time']

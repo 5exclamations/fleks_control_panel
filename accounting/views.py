@@ -5,13 +5,14 @@ from django.db.utils import ProgrammingError
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, gettext
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import os
-from .models import Client, Worker, Transaction, ClientDeposit
+from .models import Client, Worker, Transaction, ClientDeposit, ClientBalanceAdjustment
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .receipt_utils import generate_pdf_receipt, print_to_thermal_printer, generate_receipt_response, print_receipt_for_deposit
 from reportlab.lib import colors
@@ -835,6 +836,75 @@ def view_deposit_receipt(request, deposit_id, format='html'):
 
 @login_required(login_url='/admin/login/')
 @user_passes_test(is_staff_user, login_url='/admin/login/')
+def adjust_client_balance(request, client_id):
+    """
+    Отмена пополнения баланса/уроков из профиля клиента.
+    """
+    client = get_object_or_404(Client, id=client_id)
+
+    if request.method != 'POST':
+        return redirect('view_client', client_id=client.id)
+
+    amount_str = (request.POST.get('amount_removed') or '0').replace(',', '.').strip()
+    lessons_str = (request.POST.get('lessons_removed') or '0').strip()
+
+    try:
+        amount_removed = Decimal(amount_str)
+        lessons_removed = int(lessons_str)
+    except (ValueError, TypeError, InvalidOperation):
+        messages.error(request, gettext("Invalid data. Enter valid amount and lessons."))
+        return redirect('view_client', client_id=client.id)
+
+    if amount_removed < 0 or lessons_removed < 0:
+        messages.error(request, gettext("Amount and lessons cannot be negative."))
+        return redirect('view_client', client_id=client.id)
+
+    if amount_removed == 0 and lessons_removed == 0:
+        messages.error(request, gettext("Enter amount or lessons to remove."))
+        return redirect('view_client', client_id=client.id)
+
+    with transaction.atomic():
+        client_locked = Client.objects.select_for_update().get(id=client.id)
+
+        if client_locked.balance < amount_removed:
+            messages.error(request, gettext("Client has insufficient balance for this cancellation."))
+            return redirect('view_client', client_id=client.id)
+
+        if client_locked.lessons_balance < lessons_removed:
+            messages.error(request, gettext("Client has insufficient lessons for this cancellation."))
+            return redirect('view_client', client_id=client.id)
+
+        client_locked.balance -= amount_removed
+        client_locked.lessons_balance -= lessons_removed
+        client_locked.save()
+
+        adjustment = ClientBalanceAdjustment.objects.create(
+            client=client_locked,
+            amount_removed=amount_removed,
+            lessons_removed=lessons_removed,
+            balance_after=client_locked.balance,
+            lessons_balance_after=client_locked.lessons_balance,
+        )
+
+    messages.success(request, gettext("Top-up cancellation completed successfully."))
+    return redirect(f"{reverse('view_adjustment_receipt', args=[adjustment.id])}?print=1")
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
+def view_adjustment_receipt(request, adjustment_id):
+    """
+    Просмотр чека отмены пополнения.
+    """
+    adjustment = get_object_or_404(ClientBalanceAdjustment.objects.select_related('client'), id=adjustment_id)
+    context = {
+        'adjustment': adjustment,
+    }
+    return render(request, 'accounting/adjustment_receipt.html', context)
+
+
+@login_required(login_url='/admin/login/')
+@user_passes_test(is_staff_user, login_url='/admin/login/')
 def print_deposit_receipt(request, deposit_id):
     """
     Печатает чек пополнения на физический принтер (если настроен)
@@ -949,7 +1019,7 @@ def view_client(request, client_id):
     # Проверяем наличие новых полей перед загрузкой
     if _has_new_client_fields():
         client = get_object_or_404(
-            Client.objects.prefetch_related('transactions_as_client', 'deposits'),
+            Client.objects.prefetch_related('transactions_as_client', 'deposits', 'balance_adjustments'),
             id=client_id
         )
     else:
@@ -960,18 +1030,22 @@ def view_client(request, client_id):
     # Получаем последние транзакции и пополнения
     recent_transactions = client.transactions_as_client.select_related('worker__user').order_by('-date_time')[:10]
     recent_deposits = client.deposits.order_by('-date_time')[:10]
+    recent_adjustments = client.balance_adjustments.order_by('-date_time')[:10]
     
     # Вычисляем статистику
     total_spent = client.transactions_as_client.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_deposited = client.deposits.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_adjusted = client.balance_adjustments.aggregate(Sum('amount_removed'))['amount_removed__sum'] or Decimal('0.00')
     total_sessions = client.transactions_as_client.count()
     
     context = {
         'client': client,
         'recent_transactions': recent_transactions,
         'recent_deposits': recent_deposits,
+        'recent_adjustments': recent_adjustments,
         'total_spent': total_spent,
         'total_deposited': total_deposited,
+        'total_adjusted': total_adjusted,
         'total_sessions': total_sessions,
     }
     

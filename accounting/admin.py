@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Client, Worker, Transaction, ClientDeposit
+from .models import Client, Worker, Transaction, ClientDeposit, ClientBalanceAdjustment
 
 
 @admin.register(Transaction)
@@ -33,5 +33,12 @@ class WorkerAdmin(admin.ModelAdmin):
 @admin.register(ClientDeposit)
 class ClientDepositAdmin(admin.ModelAdmin):
     list_display = ('date_time', 'client', 'amount', 'lessons_added')
+    list_filter = ('date_time',)
+    search_fields = ('client__full_name',)
+
+
+@admin.register(ClientBalanceAdjustment)
+class ClientBalanceAdjustmentAdmin(admin.ModelAdmin):
+    list_display = ('date_time', 'client', 'amount_removed', 'lessons_removed')
     list_filter = ('date_time',)
     search_fields = ('client__full_name',)

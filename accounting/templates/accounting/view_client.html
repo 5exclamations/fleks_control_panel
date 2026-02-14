@@ -4,6 +4,35 @@
 {% block title %}{% trans "Client information" %}: {{ client.full_name }}{% endblock %}
 
 {% block content %}
+    <style>
+        .compact-form {
+            display: grid;
+            gap: 10px;
+        }
+        .compact-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn-small {
+            background: #007bff;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-muted {
+            background: #6c757d;
+        }
+    </style>
+
     <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <div>
             <a href="{% url 'dashboard' %}" style="color: #007bff; text-decoration: none;">← {% trans "Back to dashboard" %}</a>
@@ -101,10 +130,35 @@
             </div>
 
             <div>
+                <strong>{% trans "Total canceled top-ups" %}:</strong>
+                <p>{{ total_adjusted }} AZN</p>
+            </div>
+
+            <div>
                 <strong>{% trans "Created at" %}:</strong>
                 <p>{{ client.created_at|date:"d.m.Y H:i" }}</p>
             </div>
         </div>
+    </div>
+
+    <div class="form-card" style="max-width: 800px; margin-top: 20px;">
+        <h3>{% trans "Cancel top-up" %}</h3>
+        <form class="compact-form" method="post" action="{% url 'adjust_client_balance' client.id %}">
+            {% csrf_token %}
+            <div class="compact-form-grid">
+                <div>
+                    <label for="amount_removed"><strong>{% trans "Amount to remove" %} (AZN):</strong></label>
+                    <input type="number" id="amount_removed" name="amount_removed" min="0" step="0.01" value="0">
+                </div>
+                <div>
+                    <label for="lessons_removed"><strong>{% trans "Lessons to remove" %}:</strong></label>
+                    <input type="number" id="lessons_removed" name="lessons_removed" min="0" step="1" value="0">
+                </div>
+            </div>
+            <div>
+                <button class="btn-small btn-danger" type="submit">{% trans "Cancel top-up and print receipt" %}</button>
+            </div>
+        </form>
     </div>
 
     {% if recent_transactions %}
@@ -152,6 +206,35 @@
                 <tr>
                     <td>{{ deposit.date_time|date:"d.m.Y H:i" }}</td>
                     <td>{{ deposit.amount }} AZN</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if recent_adjustments %}
+    <div class="form-card" style="max-width: 800px; margin-top: 20px;">
+        <h3>{% trans "Top-up cancellations" %}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Date/time" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Lessons" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for adjustment in recent_adjustments %}
+                <tr>
+                    <td>{{ adjustment.date_time|date:"d.m.Y H:i" }}</td>
+                    <td>- {{ adjustment.amount_removed }} AZN</td>
+                    <td>- {{ adjustment.lessons_removed }}</td>
+                    <td>
+                        <a href="{% url 'view_adjustment_receipt' adjustment.id %}" class="btn-small">{% trans "View receipt" %}</a>
+                        <a href="{% url 'view_adjustment_receipt' adjustment.id %}?print=1" class="btn-small btn-muted" target="_blank">{% trans "Print" %}</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
