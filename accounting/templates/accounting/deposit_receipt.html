@@ -133,7 +133,10 @@
 
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Date" %}:</span> {{ date_str }}
+                <span class="receipt-label">{% trans "Date" %}:</span> {{ deposit.date_time|date:"d.m.Y" }}
+            </div>
+            <div class="receipt-item">
+                <span class="receipt-label">Saat:</span> {{ deposit.date_time|date:"H:i" }}
             </div>
         </div>
 

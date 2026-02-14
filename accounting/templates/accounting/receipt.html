@@ -127,13 +127,16 @@
             Ünvan:Bakı şəhəri, Nərimanov Rayonu,
                 Əhməd Rəcəbli 3, m.22 </div>
             <div class="receipt-item">
-Telefon: (055) 216-41-36
+Əlaqə: (055) 216-41-36
                 </div>
         </div>
 
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Date" %}:</span> {{ date_str }}
+                <span class="receipt-label">{% trans "Date" %}:</span> {{ transaction.date_time|date:"d.m.Y" }}
+            </div>
+            <div class="receipt-item">
+                <span class="receipt-label">Saat:</span> {{ transaction.date_time|date:"H:i" }}
             </div>
         </div>
 
