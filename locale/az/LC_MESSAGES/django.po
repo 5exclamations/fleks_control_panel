@@ -269,7 +269,7 @@ msgid "An unexpected error occurred while creating client: %(error)s"
 msgstr "Müştəri yaradılarkən gözlənilməz xəta baş verdi: %(error)s"
 
 msgid "Full name"
-msgstr "Tam ad"
+msgstr "Ad, soyad və ata adı"
 
 msgid "Date of birth"
 msgstr "Doğum tarixi"
@@ -281,19 +281,19 @@ msgid "Phone"
 msgstr "Əlaqə"
 
 msgid "How did you hear about us?"
-msgstr "Mərkəzimiz haqqında haradan eşitdiniz?"
+msgstr "Mərkəz haqqında məlumat əldə edilib:"
 
 msgid "Client type"
-msgstr "Müştəri tipi"
+msgstr "Müştəri kateqoriya"
 
 msgid "Child"
 msgstr "Uşaq"
 
 msgid "Teenager"
-msgstr "Gənc"
+msgstr "Yeniyetmə"
 
 msgid "Adult"
-msgstr "Böyük"
+msgstr "Yetkin"
 
 msgid "Create client"
 msgstr "Müştəri yarat"
