@@ -66,7 +66,9 @@ def process_session_payment(request, client_id, worker_id, session_cost, lessons
             worker=worker,
             amount=session_cost,
             receipt_printed=False,
-            lessons_count=lessons_count
+            lessons_count=lessons_count,
+            balance_after=client.balance,
+            lessons_balance_after=client.lessons_balance
         )
 
         messages.success(request, "Оплата сеанса прошла успешно.")
@@ -94,6 +96,8 @@ def print_receipt_for_session(transaction_record):
         
         if not print_success:
             # Если печать на принтер не удалась, выводим в консоль для отладки
+            balance_display = transaction_record.balance_after if transaction_record.balance_after is not None else transaction_record.client.balance
+            lessons_balance_display = transaction_record.lessons_balance_after if transaction_record.lessons_balance_after is not None else transaction_record.client.lessons_balance
             receipt_data = f"""
 *** ПСИХОЛОГИЧЕСКИЙ ЦЕНТР ***
 Дата: {transaction_record.date_time.strftime('%Y-%m-%d %H:%M:%S')}
@@ -103,8 +107,10 @@ def print_receipt_for_session(transaction_record):
 ---
 Услуга: Сеанс психолога
 Сумма: {transaction_record.amount} AZN
+Уроки: {transaction_record.lessons_count}
 ---
-Баланс клиента: {transaction_record.client.balance} AZN
+Баланс клиента: {balance_display} AZN
+Баланс уроков: {lessons_balance_display}
 ---
 Спасибо!
 """
@@ -164,7 +170,9 @@ def dashboard(request):
                     deposit = ClientDeposit.objects.create(
                         client=client,
                         amount=amount,
-                        lessons_added=lessons_added
+                        lessons_added=lessons_added,
+                        balance_after=client.balance,
+                        lessons_balance_after=client.lessons_balance
                     )
                     
                     # Печатаем чек для пополнения
@@ -229,7 +237,9 @@ def dashboard(request):
                         worker=worker,
                         amount=session_cost,
                         receipt_printed=False,
-                        lessons_count=lessons_count
+                        lessons_count=lessons_count,
+                        balance_after=client.balance,
+                        lessons_balance_after=client.lessons_balance
                     )
 
                     messages.success(request, gettext("Session payment processed successfully."))
@@ -735,6 +745,25 @@ def edit_client(request, client_id):
             client.phone = phone
             client.referral_source = referral_source
             client.client_type = client_type
+            # update lessons balance if provided
+            if lessons_balance_str:
+                try:
+                    lessons_balance_val = int(lessons_balance_str)
+                except (ValueError, TypeError):
+                    messages.error(request, gettext("Invalid lessons count. Use a whole number."))
+                    return render(request, 'accounting/edit_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'client': client,
+                        'form_data': request.POST
+                    })
+                if lessons_balance_val < 0:
+                    messages.error(request, gettext("Invalid lessons count. Use a whole number."))
+                    return render(request, 'accounting/edit_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'client': client,
+                        'form_data': request.POST
+                    })
+                client.lessons_balance = lessons_balance_val
             client.save()
 
             messages.success(request, gettext("Client %(client_name)s updated successfully.") % {

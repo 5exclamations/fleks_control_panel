@@ -31,7 +31,7 @@
                     <select id="client_session" name="client_id" required>
                         <option value="">--- {% trans "Select client" %} ---</option>
                         {% for client in clients %}
-                            <option value="{{ client.id }}">{{ client.full_name }} ({% trans "Balance" %}: {{ client.balance }})</option>
+                            <option value="{{ client.id }}">{{ client.full_name }} ({% trans "Balance" %}: {{ client.balance }} / {% trans "Lessons" %}: {{ client.lessons_balance }})</option>
                         {% endfor %}
                     </select>
                     <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
@@ -52,6 +52,11 @@
                     <input type="number" id="session_cost" name="session_cost" step="0.01" required>
                 </div>
 
+                <div>
+                    <label for="session_lessons">{% trans "Lessons to charge" %}:</label>
+                    <input type="number" id="session_lessons" name="session_lessons" min="1" step="1" required>
+                </div>
+
                 <button type="submit">{% trans "Process payment and print receipt" %}</button>
             </form>
         </div>
@@ -67,7 +72,7 @@
                     <select id="client_deposit" name="client_id" required>
                         <option value="">--- {% trans "Select client" %} ---</option>
                         {% for client in clients %}
-                            <option value="{{ client.id }}">{{ client.full_name }}</option>
+                            <option value="{{ client.id }}">{{ client.full_name }} ({% trans "Balance" %}: {{ client.balance }} / {% trans "Lessons" %}: {{ client.lessons_balance }})</option>
                         {% endfor %}
                     </select>
                     <small style="display: block; margin-top: 5px;"><a href="{% url 'create_client' %}" style="color: #007bff;">{% trans "Add new client" %}</a></small>
@@ -76,6 +81,11 @@
                 <div>
                     <label for="amount">{% trans "Top-up amount" %}:</label>
                     <input type="number" id="amount" name="deposit_amount" step="0.01" required>
+                </div>
+
+                <div>
+                    <label for="deposit_lessons">{% trans "Lessons to add" %}:</label>
+                    <input type="number" id="deposit_lessons" name="deposit_lessons" min="0" step="1" required>
                 </div>
 
                 <button type="submit">{% trans "Top up" %}</button>
@@ -94,6 +104,7 @@
                     <th>{% trans "Client" %}</th>
                     <th>{% trans "Worker" %}</th>
                     <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Lessons" %}</th>
                     <th>{% trans "Transaction #" %}</th>
                     <th>{% trans "Actions" %}</th>
                 </tr>
@@ -128,6 +139,13 @@
                             {{ op.transaction.amount }} AZN
                         {% else %}
                             {{ op.deposit.amount }} AZN
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if op.type == 'transaction' %}
+                            {{ op.transaction.lessons_count }}
+                        {% else %}
+                            {{ op.deposit.lessons_added }}
                         {% endif %}
                     </td>
                     <td>

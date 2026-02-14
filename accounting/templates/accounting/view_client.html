@@ -81,6 +81,11 @@
             </div>
 
             <div>
+                <strong>{% trans "Lessons balance" %}:</strong>
+                <p style="font-size: 1.2em; font-weight: bold; color: #007bff;">{{ client.lessons_balance }}</p>
+            </div>
+
+            <div>
                 <strong>{% trans "Total sessions" %}:</strong>
                 <p>{{ total_sessions }}</p>
             </div>
@@ -111,6 +116,7 @@
                     <th>{% trans "Date/time" %}</th>
                     <th>{% trans "Worker" %}</th>
                     <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Lessons" %}</th>
                     <th>{% trans "Actions" %}</th>
                 </tr>
             </thead>
@@ -120,6 +126,7 @@
                     <td>{{ tx.date_time|date:"d.m.Y H:i" }}</td>
                     <td>{{ tx.worker.user.username }}</td>
                     <td>{{ tx.amount }} AZN</td>
+                    <td>{{ tx.lessons_count }}</td>
                     <td>
                         <a href="{% url 'view_receipt' tx.id %}" style="background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; font-size: 12px;">{% trans "View receipt" %}</a>
                     </td>

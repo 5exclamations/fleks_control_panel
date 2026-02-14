@@ -151,12 +151,18 @@ Telefon: (055) 216-41-36
             <div class="receipt-item">
                 <span class="receipt-label">{% trans "Amount" %}:</span> {{ deposit.amount }} AZN
             </div>
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Lessons added" %}:</span> {{ deposit.lessons_added }}
+            </div>
         </div>
 
         
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Balance" %}:</span> {{ deposit.client.balance }} AZN
+                <span class="receipt-label">{% trans "Balance" %}:</span> {{ deposit.balance_after|default:deposit.client.balance }} AZN
+            </div>
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Lessons balance" %}:</span> {{ deposit.lessons_balance_after|default:deposit.client.lessons_balance }}
             </div>
         </div>
 

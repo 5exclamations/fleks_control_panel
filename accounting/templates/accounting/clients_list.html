@@ -31,6 +31,7 @@
                         <th>{% trans "Client type" %}</th>
                         <th>{% trans "Phone" %}</th>
                         <th>{% trans "Balance" %}</th>
+                        <th>{% trans "Lessons" %}</th>
                         <th>{% trans "Actions" %}</th>
                     </tr>
                 </thead>
@@ -55,6 +56,7 @@
                             </td>
                             <td>{{ client.phone }}</td>
                             <td>{{ client.balance }} AZN</td>
+                            <td>{{ client.lessons_balance }}</td>
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     <a href="{% url 'view_client' client.id %}" class="button" style="padding: 4px 10px; font-size: 13px;">

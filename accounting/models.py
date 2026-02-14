@@ -43,9 +43,15 @@ class Client(models.Model):
         decimal_places=2,
         default=0.00
     )
+
+    # Count of prepaid lessons for the client
+    lessons_balance = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Lessons balance"
+    )
     
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    created_at = models.DateTimeField(auto_now_add=True, null=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, null=True, verbose_name="Дата обновления")
 
     def __str__(self):
         return self.full_name
@@ -89,6 +95,26 @@ class Transaction(models.Model):
         verbose_name="Стоимость сеанса"
     )
 
+    # Number of lessons included in this payment
+    lessons_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Lessons count"
+    )
+
+    # Snapshot of balances right after the transaction
+    balance_after = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Balance after"
+    )
+    lessons_balance_after = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Lessons balance after"
+    )
+
     date_time = models.DateTimeField(auto_now_add=True)
 
     receipt_printed = models.BooleanField(default=False)
@@ -103,14 +129,33 @@ class Transaction(models.Model):
 
 
 class ClientDeposit(models.Model):
-        client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='deposits')
-        amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма пополнения")
-        date_time = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время")
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='deposits')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма пополнения")
+    date_time = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время")
 
-        def __str__(self):
-            return f"Пополнение {self.client.full_name} на {self.amount}"
+    # How many lessons were added with this deposit
+    lessons_added = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Lessons added"
+    )
 
-        class Meta:
-            verbose_name = "Пополнение клиента"
-            verbose_name_plural = "Пополнения клиентов"
-            ordering = ['-date_time']
+    balance_after = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Balance after"
+    )
+    lessons_balance_after = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Lessons balance after"
+    )
+
+    def __str__(self):
+        return f"Пополнение {self.client.full_name} на {self.amount}"
+
+    class Meta:
+        verbose_name = "Пополнение клиента"
+        verbose_name_plural = "Пополнения клиентов"
+        ordering = ['-date_time']

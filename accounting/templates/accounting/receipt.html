@@ -152,12 +152,18 @@ Telefon: (055) 216-41-36
             <div class="receipt-item">
                 <span class="receipt-label">{% trans "Amount" %}:</span> {{ transaction.amount }} AZN
             </div>
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Lessons" %}:</span> {{ transaction.lessons_count }}
+            </div>
         </div>
 
         
         <div class="receipt-section">
             <div class="receipt-item">
-                <span class="receipt-label">{% trans "Balance" %}:</span> {{ transaction.client.balance }} AZN
+                <span class="receipt-label">{% trans "Balance" %}:</span> {{ transaction.balance_after|default:transaction.client.balance }} AZN
+            </div>
+            <div class="receipt-item">
+                <span class="receipt-label">{% trans "Lessons balance" %}:</span> {{ transaction.lessons_balance_after|default:transaction.client.lessons_balance }}
             </div>
         </div>
 
