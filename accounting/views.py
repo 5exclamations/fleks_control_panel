@@ -306,8 +306,8 @@ def dashboard(request):
         return redirect(f"{request.path}?client_q={client_q}&worker_q={worker_q}")
     else:
         if _has_new_client_fields():
-            clients_qs = Client.objects.all()
-            workers_qs = Worker.objects.all()
+            clients_qs = Client.objects.all().order_by('full_name')
+            workers_qs = Worker.objects.all().order_by('user__username')
             # Получаем последние транзакции и депозиты
             recent_transactions = Transaction.objects.select_related('client', 'worker__user').order_by('-date_time')[:20]
             recent_deposits = ClientDeposit.objects.select_related('client').order_by('-date_time')[:20]
@@ -334,18 +334,18 @@ def dashboard(request):
             # Используем только существующие поля до применения миграции
             messages.warning(request, gettext("Database migration required. Please run: python manage.py migrate"))
             clients_qs = []
-            workers_qs = Worker.objects.all()
+            workers_qs = Worker.objects.all().order_by('user__username')
             recent_transactions = []
             recent_operations = []
 
         if client_q:
-            clients_qs = clients_qs.filter(full_name__icontains=client_q)
+            clients_qs = clients_qs.filter(full_name__icontains=client_q).order_by('full_name')
         if worker_q:
             workers_qs = workers_qs.filter(
                 Q(user__username__icontains=worker_q) |  # Поиск по логину
                 Q(user__first_name__icontains=worker_q) |  # Поиск по имени
                 Q(user__last_name__icontains=worker_q)  # Поиск по фамилии
-            )
+            ).order_by('user__username')
 
         context = {
             'clients': clients_qs,
