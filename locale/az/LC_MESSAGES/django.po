@@ -25,6 +25,81 @@ msgstr "Hesabatlar"
 msgid "Django Admin"
 msgstr "Django Admin"
 
+msgid "An unexpected error occurred while updating client: %(error)s"
+msgstr "Müştəri yenilənərkən gözlənilməz xəta baş verdi: %(error)s"
+
+msgid "Back to client"
+msgstr "Müştəriyə qayıt"
+
+msgid "Client %(client_name)s deleted successfully."
+msgstr "Müştəri %(client_name)s uğurla silindi."
+
+msgid "Client %(client_name)s updated successfully."
+msgstr "Müştəri %(client_name)s uğurla yeniləndi."
+
+msgid "Database migration required. Please run: python manage.py migrate"
+msgstr "Verilənlər bazası miqrasiyası tələb olunur. Zəhmət olmasa işlədin: python manage.py migrate"
+
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Delete client"
+msgstr "Müştərini sil"
+
+msgid "Deposit #"
+msgstr "Depozit #"
+
+msgid "Edit"
+msgstr "Redaktə et"
+
+msgid "Edit client"
+msgstr "Müştərini redaktə et"
+
+msgid "Error: Cannot delete client with existing sessions or deposits."
+msgstr "Xəta: Seansları və ya depozitləri olan müştərini silmək olmaz."
+
+msgid "Error: Client %(client_name)s has insufficient lessons."
+msgstr "Xəta: Müştəri %(client_name)s üçün dərs sayı kifayət deyil."
+
+msgid "Error: Client not selected or top-up data is incorrect."
+msgstr "Xəta: Müştəri seçilməyib və ya artırma məlumatları yanlışdır."
+
+msgid "Invalid lessons count. Use a whole number."
+msgstr "Dərs sayı yanlışdır. Tam ədəd istifadə edin."
+
+msgid "Invalid transaction number. Please enter a valid number."
+msgstr "Tranzaksiya nömrəsi yanlışdır. Düzgün nömrə daxil edin."
+
+msgid "No clients found."
+msgstr "Müştəri tapılmadı."
+
+msgid "No operations yet."
+msgstr "Hələ əməliyyat yoxdur."
+
+msgid "Receipt sent to printer successfully."
+msgstr "Qəbz printerə uğurla göndərildi."
+
+msgid "Recent operations"
+msgstr "Son əməliyyatlar"
+
+msgid "Reset"
+msgstr "Sıfırla"
+
+msgid "Save changes"
+msgstr "Dəyişiklikləri yadda saxla"
+
+msgid "Search"
+msgstr "Axtar"
+
+msgid "Session"
+msgstr "Seans"
+
+msgid "Top-up"
+msgstr "Artırma"
+
+msgid "Type"
+msgstr "Növ"
+
 msgid "Logout"
 msgstr "Çıxış"
 
