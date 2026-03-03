@@ -98,7 +98,6 @@
                             <th>{% trans "Client type" %}</th>
                             <th>{% trans "Phone" %}</th>
                             <th>{% trans "Balance" %}</th>
-                            <th>{% trans "Lessons" %}</th>
                             <th>{% trans "Actions" %}</th>
                         </tr>
                     </thead>
@@ -123,7 +122,6 @@
                                 </td>
                                 <td>{{ client.phone }}</td>
                                 <td>{{ client.balance }} AZN</td>
-                                <td>{{ client.lessons_balance }}</td>
                                 <td>
                                     <div class="clients-actions">
                                         <a href="{% url 'view_client' client.id %}" class="btn-link btn-sm btn-view">{% trans "View" %}</a>

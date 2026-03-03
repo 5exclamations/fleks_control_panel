@@ -429,7 +429,7 @@ msgid "Lessons to add"
 msgstr "Əlavə ediləcək dərs sayı"
 
 msgid "Lessons to charge"
-msgstr "Silinəcək dərs sayı"
+msgstr "Dərs sayı"
 
 msgid "Lessons balance after"
 msgstr "Dərs balansı (sonra)"
