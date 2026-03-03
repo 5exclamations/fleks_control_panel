@@ -128,17 +128,11 @@
             <div class="receipt-item">
                 <span class="receipt-label">{% trans "Silinən məbləğ" %}:</span> {{ adjustment.amount_removed }} AZN
             </div>
-            <div class="receipt-item">
-                <span class="receipt-label">{% trans "Silinən dərs" %}:</span> {{ adjustment.lessons_removed }}
-            </div>
         </div>
 
         <div class="receipt-section">
             <div class="receipt-item">
                 <span class="receipt-label">{% trans "Balance" %}:</span> {{ adjustment.balance_after|default:adjustment.client.balance }} AZN
-            </div>
-            <div class="receipt-item">
-                <span class="receipt-label">{% trans "Lessons balance" %}:</span> {{ adjustment.lessons_balance_after|default:adjustment.client.lessons_balance }}
             </div>
         </div>
 

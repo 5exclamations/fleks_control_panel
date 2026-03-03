@@ -155,9 +155,6 @@
             <div class="receipt-item">
                 <span class="receipt-label">{% trans "Lessons" %} sayı:</span> {{ transaction.lessons_count }}
             </div>
-            <div class="receipt-item">
-                <span class="receipt-label">{% trans "Balance" %}(dərs sayı):</span> {{ transaction.lessons_balance_after|default:transaction.client.lessons_balance }}
-            </div>
         </div>
 
         

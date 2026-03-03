@@ -19,7 +19,6 @@ def generate_pdf_receipt(transaction):
     """
     buffer = BytesIO()
     balance_display = transaction.balance_after if transaction.balance_after is not None else transaction.client.balance
-    lessons_balance_display = transaction.lessons_balance_after if transaction.lessons_balance_after is not None else transaction.client.lessons_balance
     
     # Создаем PDF документ
     doc = SimpleDocTemplate(
@@ -104,7 +103,6 @@ def generate_pdf_receipt(transaction):
     # Баланс клиента
     story.append(Paragraph(f"<b>{_('Balance')}:</b> {balance_display} AZN", normal_style))
     story.append(Spacer(1, 2*mm))
-    story.append(Paragraph(f"<b>{_('Lessons balance')}:</b> {lessons_balance_display}", normal_style))
     story.append(Spacer(1, 3*mm))
     
     # Разделитель
@@ -178,12 +176,10 @@ def print_to_thermal_printer(transaction, printer_path=None):
         printer.text(f"{_('Amount')}: {transaction.amount} AZN\n")
         printer.set(align='left', font='a', width=1, height=1)
         balance_display = transaction.balance_after if transaction.balance_after is not None else transaction.client.balance
-        lessons_balance_display = transaction.lessons_balance_after if transaction.lessons_balance_after is not None else transaction.client.lessons_balance
         printer.text(f"{_('Lessons')}: {transaction.lessons_count}\n")
         printer.text("─" * 32 + "\n\n")
         
         printer.text(f"{_('Balance')}: {balance_display} AZN\n")
-        printer.text(f"{_('Lessons balance')}: {lessons_balance_display}\n")
         printer.text("─" * 32 + "\n\n")
         
         printer.set(align='center', font='a', width=1, height=1)
@@ -283,13 +279,10 @@ def print_to_thermal_printer_deposit(deposit, printer_path=None):
         printer.set(align='left', font='a', width=2, height=2)
         printer.text(f"{_('Amount')}: {deposit.amount} AZN\n")
         printer.set(align='left', font='a', width=1, height=1)
-        printer.text(f"{_('Lessons added')}: {deposit.lessons_added}\n")
         printer.text("─" * 32 + "\n\n")
         
         balance_display = deposit.balance_after if deposit.balance_after is not None else deposit.client.balance
-        lessons_balance_display = deposit.lessons_balance_after if deposit.lessons_balance_after is not None else deposit.client.lessons_balance
         printer.text(f"{_('Balance')}: {balance_display} AZN\n")
-        printer.text(f"{_('Lessons balance')}: {lessons_balance_display}\n")
         printer.text("─" * 32 + "\n\n")
         
         printer.set(align='center', font='a', width=1, height=1)
@@ -322,7 +315,6 @@ def print_receipt_for_deposit(deposit):
         if not print_success:
             # Если печать на принтер не удалась, выводим в консоль для отладки
             balance_display = deposit.balance_after if deposit.balance_after is not None else deposit.client.balance
-            lessons_balance_display = deposit.lessons_balance_after if deposit.lessons_balance_after is not None else deposit.client.lessons_balance
             receipt_data = f"""
 *** ПСИХОЛОГИЧЕСКИЙ ЦЕНТР ***
 Дата: {deposit.date_time.strftime('%Y-%m-%d %H:%M:%S')}
@@ -331,10 +323,8 @@ def print_receipt_for_deposit(deposit):
 ---
 Операция: Пополнение баланса
 Сумма: {deposit.amount} AZN
-Уроки добавлено: {deposit.lessons_added}
 ---
 Баланс клиента: {balance_display} AZN
-Баланс уроков: {lessons_balance_display}
 ---
 Спасибо!
 Номер пополнения: {deposit.id}

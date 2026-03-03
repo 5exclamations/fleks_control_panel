@@ -63,13 +63,8 @@ def process_session_payment(request, client_id, worker_id, session_cost, lessons
             messages.error(request, f"????????????: ???????????????????????? ?????????????? ???? ?????????????? ?????????????? {client.full_name}.")
             return HttpResponse("Error: Insufficient funds", status=400)
 
-        if client.lessons_balance < lessons_count:
-            messages.error(request, f"Error: Client {client.full_name} has insufficient lessons.")
-            return HttpResponse("Error: Insufficient lessons", status=400)
-
         # taking money from balance of a client
         client.balance -= session_cost
-        client.lessons_balance -= lessons_count
         client.save()
         transaction_record = Transaction.objects.create(
             client=client,
@@ -107,7 +102,6 @@ def print_receipt_for_session(transaction_record):
         if not print_success:
             # Если печать на принтер не удалась, выводим в консоль для отладки
             balance_display = transaction_record.balance_after if transaction_record.balance_after is not None else transaction_record.client.balance
-            lessons_balance_display = transaction_record.lessons_balance_after if transaction_record.lessons_balance_after is not None else transaction_record.client.lessons_balance
             receipt_data = f"""
 *** ПСИХОЛОГИЧЕСКИЙ ЦЕНТР ***
 Дата: {transaction_record.date_time.strftime('%Y-%m-%d %H:%M:%S')}
@@ -120,7 +114,6 @@ def print_receipt_for_session(transaction_record):
 Уроки: {transaction_record.lessons_count}
 ---
 Баланс клиента: {balance_display} AZN
-Баланс уроков: {lessons_balance_display}
 ---
 Спасибо!
 """
@@ -345,12 +338,8 @@ def dashboard(request):
                                 candidate = candidates[0]
                         if candidate:
                             client_id = str(candidate.id)
-                # Accept commas/whitespace and allow leaving lessons empty (treat as 0)
+                # Accept commas/whitespace
                 amount_str = (request.POST.get('deposit_amount') or '').replace(',', '.').strip()
-                lessons_count_str = (request.POST.get('deposit_lessons') or '').strip()
-
-                if lessons_count_str == '':
-                    lessons_count_str = '0'
 
                 if not client_id or not amount_str:
                     messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
@@ -358,12 +347,11 @@ def dashboard(request):
 
                 try:
                     amount = Decimal(amount_str)
-                    lessons_added = int(lessons_count_str)
                 except (ValueError, TypeError, InvalidOperation):
                     messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
                     return redirect('dashboard')
 
-                if amount <= 0 or lessons_added < 0:
+                if amount <= 0:
                     messages.error(request, gettext("Error: Client not selected or top-up data is incorrect."))
                     return redirect('dashboard')
 
@@ -371,12 +359,11 @@ def dashboard(request):
 
                 with transaction.atomic():
                     client.balance += amount
-                    client.lessons_balance += lessons_added
                     client.save()
                     deposit = ClientDeposit.objects.create(
                         client=client,
                         amount=amount,
-                        lessons_added=lessons_added,
+                        lessons_added=0,
                         balance_after=client.balance,
                         lessons_balance_after=client.lessons_balance
                     )
@@ -457,14 +444,7 @@ def dashboard(request):
                         })
                         return redirect('dashboard')
 
-                    if client.lessons_balance < lessons_count:
-                        messages.error(request, gettext("Error: Client %(client_name)s has insufficient lessons.") % {
-                            'client_name': client.full_name
-                        })
-                        return redirect('dashboard')
-
                     client.balance -= session_cost
-                    client.lessons_balance -= lessons_count
                     client.save()
 
 
@@ -877,21 +857,19 @@ def adjust_client_balance(request, client_id):
         return redirect('view_client', client_id=client.id)
 
     amount_str = (request.POST.get('amount_removed') or '0').replace(',', '.').strip()
-    lessons_str = (request.POST.get('lessons_removed') or '0').strip()
 
     try:
         amount_removed = Decimal(amount_str)
-        lessons_removed = int(lessons_str)
     except (ValueError, TypeError, InvalidOperation):
-        messages.error(request, gettext("Invalid data. Enter valid amount and lessons."))
+        messages.error(request, gettext("Invalid data. Enter valid amount."))
         return redirect('view_client', client_id=client.id)
 
-    if amount_removed < 0 or lessons_removed < 0:
-        messages.error(request, gettext("Amount and lessons cannot be negative."))
+    if amount_removed < 0:
+        messages.error(request, gettext("Amount cannot be negative."))
         return redirect('view_client', client_id=client.id)
 
-    if amount_removed == 0 and lessons_removed == 0:
-        messages.error(request, gettext("Enter amount or lessons to remove."))
+    if amount_removed == 0:
+        messages.error(request, gettext("Enter amount to remove."))
         return redirect('view_client', client_id=client.id)
 
     with transaction.atomic():
@@ -901,18 +879,13 @@ def adjust_client_balance(request, client_id):
             messages.error(request, gettext("Client has insufficient balance for this cancellation."))
             return redirect('view_client', client_id=client.id)
 
-        if client_locked.lessons_balance < lessons_removed:
-            messages.error(request, gettext("Client has insufficient lessons for this cancellation."))
-            return redirect('view_client', client_id=client.id)
-
         client_locked.balance -= amount_removed
-        client_locked.lessons_balance -= lessons_removed
         client_locked.save()
 
         adjustment = ClientBalanceAdjustment.objects.create(
             client=client_locked,
             amount_removed=amount_removed,
-            lessons_removed=lessons_removed,
+            lessons_removed=0,
             balance_after=client_locked.balance,
             lessons_balance_after=client_locked.lessons_balance,
         )
@@ -964,9 +937,7 @@ def create_client(request):
             phone = request.POST.get('phone', '').strip()
             referral_source = request.POST.get('referral_source', '').strip()
             client_type = request.POST.get('client_type', 'adult')
-            lessons_balance_str = request.POST.get('lessons_balance', '').strip()
             initial_balance_str = request.POST.get('initial_balance', '0').strip()
-            initial_lessons_str = request.POST.get('initial_lessons', '0').strip()
 
             if not full_name:
                 messages.error(request, gettext("Error: Client name is required."))
@@ -996,21 +967,6 @@ def create_client(request):
                     })
 
             initial_balance = Decimal(initial_balance_str) if initial_balance_str else Decimal('0.00')
-            try:
-                initial_lessons = int(initial_lessons_str) if initial_lessons_str else 0
-            except (ValueError, TypeError):
-                messages.error(request, gettext("Invalid lessons count. Use a whole number."))
-                return render(request, 'accounting/create_client.html', {
-                    'client_types': Client.CLIENT_TYPE_CHOICES,
-                    'form_data': request.POST
-                })
-
-            if initial_lessons < 0:
-                messages.error(request, gettext("Invalid lessons count. Use a whole number."))
-                return render(request, 'accounting/create_client.html', {
-                    'client_types': Client.CLIENT_TYPE_CHOICES,
-                    'form_data': request.POST
-                })
 
             # Создаем нового клиента
             new_client = Client.objects.create(
@@ -1021,7 +977,7 @@ def create_client(request):
                 referral_source=referral_source,
                 client_type=client_type,
                 balance=initial_balance,
-                lessons_balance=initial_lessons
+                lessons_balance=0
             )
 
             messages.success(request, gettext("Client %(client_name)s created successfully.") % {
@@ -1099,7 +1055,6 @@ def edit_client(request, client_id):
             phone = request.POST.get('phone', '').strip()
             referral_source = request.POST.get('referral_source', '').strip()
             client_type = request.POST.get('client_type', 'adult')
-            lessons_balance_str = request.POST.get('lessons_balance', '').strip()
 
             if not full_name:
                 messages.error(request, gettext("Error: Client name is required."))
@@ -1138,25 +1093,6 @@ def edit_client(request, client_id):
             client.phone = phone
             client.referral_source = referral_source
             client.client_type = client_type
-            # update lessons balance if provided
-            if lessons_balance_str:
-                try:
-                    lessons_balance_val = int(lessons_balance_str)
-                except (ValueError, TypeError):
-                    messages.error(request, gettext("Invalid lessons count. Use a whole number."))
-                    return render(request, 'accounting/edit_client.html', {
-                        'client_types': Client.CLIENT_TYPE_CHOICES,
-                        'client': client,
-                        'form_data': request.POST
-                    })
-                if lessons_balance_val < 0:
-                    messages.error(request, gettext("Invalid lessons count. Use a whole number."))
-                    return render(request, 'accounting/edit_client.html', {
-                        'client_types': Client.CLIENT_TYPE_CHOICES,
-                        'client': client,
-                        'form_data': request.POST
-                    })
-                client.lessons_balance = lessons_balance_val
             client.save()
 
             messages.success(request, gettext("Client %(client_name)s updated successfully.") % {

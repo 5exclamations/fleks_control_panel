@@ -85,7 +85,7 @@
                     <input type="hidden" id="client_session" name="client_id" required>
                     <datalist id="client_session_list">
                         {% for client in clients %}
-                            <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN / {% trans "Lessons" %}: {{ client.lessons_balance }})"></option>
+                            <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN)"></option>
                         {% endfor %}
                     </datalist>
                     <small class="input-hint"><a href="{% url 'create_client' %}">{% trans "Add new client" %}</a></small>
@@ -136,7 +136,7 @@
                     <input type="hidden" id="client_deposit" name="client_id" required>
                     <datalist id="client_deposit_list">
                         {% for client in clients %}
-                            <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN / {% trans "Lessons" %}: {{ client.lessons_balance }})"></option>
+                            <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN)"></option>
                         {% endfor %}
                     </datalist>
                     <small class="input-hint"><a href="{% url 'create_client' %}">{% trans "Add new client" %}</a></small>
@@ -145,11 +145,6 @@
                 <div>
                     <label for="amount">{% trans "Top-up amount" %}:</label>
                     <input type="number" id="amount" name="deposit_amount" step="0.01" required placeholder="0.00">
-                </div>
-
-                <div>
-                    <label for="deposit_lessons">{% trans "Lessons to add" %}:</label>
-                    <input type="number" id="deposit_lessons" name="deposit_lessons" min="0" step="1" required placeholder="0">
                 </div>
 
                 <button type="submit" class="btn-sm btn-info">{% trans "Top up" %}</button>
@@ -214,10 +209,8 @@
                     <td>
                         {% if op.type == 'transaction' %}
                             {{ op.transaction.lessons_count }}
-                        {% elif op.type == 'adjustment' %}
-                            {{ op.adjustment.lessons_removed }}
                         {% else %}
-                            {{ op.deposit.lessons_added }}
+                            -
                         {% endif %}
                     </td>
                     <td>
