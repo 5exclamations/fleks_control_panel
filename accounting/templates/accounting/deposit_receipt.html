@@ -155,17 +155,14 @@
             <div class="receipt-item">
                 <span class="receipt-label">{% trans "Amount" %}:</span> {{ deposit.amount }} AZN
             </div>
-        </div>
 
-        
-        <div class="receipt-section">
             <div class="receipt-item">
                 <span class="receipt-label">{% trans "Balance" %}:</span> {{ deposit.balance_after|default:deposit.client.balance }} AZN
             </div>
         </div>
 
         
-        <div class="receipt-footer">
+        <div class="receipt-footer"> 
             {% trans "Thank you!" %}
         </div>
         <div class="receipt-footer">Sağlamlıq naminə peşəkarcasına və sevə sevə!</div>
