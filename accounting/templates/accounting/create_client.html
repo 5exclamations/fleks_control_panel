@@ -52,6 +52,13 @@
             </div>
 
             <div>
+                <label for="default_session_amount">{% trans "Session template amount" %} (AZN):</label>
+                <input type="number" id="default_session_amount" name="default_session_amount" step="0.01" min="0"
+                       value="{{ form_data.default_session_amount|default:'' }}"
+                       placeholder="{% trans 'Optional' %}">
+            </div>
+
+            <div>
                 <label for="client_type">{% trans "Client type" %}:</label>
                 <select id="client_type" name="client_type" required>
                     {% for value, label in client_types %}

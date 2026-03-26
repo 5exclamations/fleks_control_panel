@@ -412,3 +412,15 @@ msgstr "Период"
 msgid "Generated at"
 msgstr "Сформировано"
 
+msgid "Session template amount"
+msgstr "Шаблонная сумма сеанса"
+
+msgid "Invalid session template amount."
+msgstr "Некорректная шаблонная сумма сеанса."
+
+msgid "Session template amount cannot be negative."
+msgstr "Шаблонная сумма сеанса не может быть отрицательной."
+
+msgid "Optional"
+msgstr "Необязательно"
+

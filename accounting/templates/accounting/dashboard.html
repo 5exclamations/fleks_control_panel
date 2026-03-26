@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n l10n %}
 
 {% block title %}{% trans "Control Panel" %}{% endblock %}
 
@@ -85,7 +85,7 @@
                     <input type="hidden" id="client_session" name="client_id" required>
                     <datalist id="client_session_list">
                         {% for client in clients %}
-                            <option data-id="{{ client.id }}" value="{{ client.full_name }} ({{ client.balance }} AZN)"></option>
+                            <option data-id="{{ client.id }}" data-default-session-amount="{{ client.default_session_amount|unlocalize|default_if_none:'' }}" value="{{ client.full_name }} ({{ client.balance }} AZN)"></option>
                         {% endfor %}
                     </datalist>
                     <small class="input-hint"><a href="{% url 'create_client' %}">{% trans "Add new client" %}</a></small>
@@ -250,7 +250,7 @@
 {% block extra_scripts %}
 <script>
 (function() {
-    function wireDatalist(displayId, hiddenId, listId) {
+    function wireDatalist(displayId, hiddenId, listId, onMatch) {
         const display = document.getElementById(displayId);
         const hidden = document.getElementById(hiddenId);
         const options = Array.from(document.getElementById(listId).children);
@@ -261,6 +261,9 @@
             const match = options.find(o => o.value.toLowerCase() === val);
             if (match) {
                 hidden.value = match.dataset.id;
+                if (typeof onMatch === 'function') {
+                    onMatch(match);
+                }
             } else {
                 hidden.value = '';
             }
@@ -271,7 +274,13 @@
         display.addEventListener('blur', tryMatch);
     }
 
-    wireDatalist('client_session_display', 'client_session', 'client_session_list');
+    wireDatalist('client_session_display', 'client_session', 'client_session_list', function(match) {
+        const sessionCostInput = document.getElementById('session_cost');
+        const defaultAmount = (match && match.dataset) ? match.dataset.defaultSessionAmount : '';
+        if (sessionCostInput && defaultAmount && !String(sessionCostInput.value || '').trim()) {
+            sessionCostInput.value = String(defaultAmount).replace(',', '.');
+        }
+    });
     wireDatalist('worker_session_display', 'worker_session', 'worker_session_list');
     wireDatalist('client_deposit_display', 'client_deposit', 'client_deposit_list');
 })();

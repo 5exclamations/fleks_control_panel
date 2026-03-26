@@ -509,3 +509,15 @@ msgstr "Dövr"
 msgid "Generated at"
 msgstr "Yaranma vaxtı"
 
+msgid "Session template amount"
+msgstr "Seans üçün şablon məbləğ"
+
+msgid "Invalid session template amount."
+msgstr "Seans şablon məbləği yanlışdır."
+
+msgid "Session template amount cannot be negative."
+msgstr "Seans şablon məbləği mənfi ola bilməz."
+
+msgid "Optional"
+msgstr "İstəyə bağlı"
+

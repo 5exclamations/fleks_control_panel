@@ -435,3 +435,15 @@ msgstr "Period"
 msgid "Generated at"
 msgstr "Generated at"
 
+msgid "Session template amount"
+msgstr "Session template amount"
+
+msgid "Invalid session template amount."
+msgstr "Invalid session template amount."
+
+msgid "Session template amount cannot be negative."
+msgstr "Session template amount cannot be negative."
+
+msgid "Optional"
+msgstr "Optional"
+

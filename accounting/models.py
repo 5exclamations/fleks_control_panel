@@ -44,6 +44,14 @@ class Client(models.Model):
         default=0.00
     )
 
+    default_session_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Шаблонная сумма сеанса"
+    )
+
     # Count of prepaid lessons for the client
     lessons_balance = models.PositiveIntegerField(
         default=0,

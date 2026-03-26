@@ -938,6 +938,7 @@ def create_client(request):
             referral_source = request.POST.get('referral_source', '').strip()
             client_type = request.POST.get('client_type', 'adult')
             initial_balance_str = request.POST.get('initial_balance', '0').strip()
+            default_session_amount_str = (request.POST.get('default_session_amount') or '').replace(',', '.').strip()
 
             if not full_name:
                 messages.error(request, gettext("Error: Client name is required."))
@@ -967,6 +968,22 @@ def create_client(request):
                     })
 
             initial_balance = Decimal(initial_balance_str) if initial_balance_str else Decimal('0.00')
+            default_session_amount = None
+            if default_session_amount_str:
+                try:
+                    default_session_amount = Decimal(default_session_amount_str)
+                except (ValueError, TypeError, InvalidOperation):
+                    messages.error(request, gettext("Invalid session template amount."))
+                    return render(request, 'accounting/create_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'form_data': request.POST
+                    })
+                if default_session_amount < 0:
+                    messages.error(request, gettext("Session template amount cannot be negative."))
+                    return render(request, 'accounting/create_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'form_data': request.POST
+                    })
 
             # Создаем нового клиента
             new_client = Client.objects.create(
@@ -977,6 +994,7 @@ def create_client(request):
                 referral_source=referral_source,
                 client_type=client_type,
                 balance=initial_balance,
+                default_session_amount=default_session_amount,
                 lessons_balance=0
             )
 
@@ -1055,6 +1073,7 @@ def edit_client(request, client_id):
             phone = request.POST.get('phone', '').strip()
             referral_source = request.POST.get('referral_source', '').strip()
             client_type = request.POST.get('client_type', 'adult')
+            default_session_amount_str = (request.POST.get('default_session_amount') or '').replace(',', '.').strip()
 
             if not full_name:
                 messages.error(request, gettext("Error: Client name is required."))
@@ -1093,6 +1112,28 @@ def edit_client(request, client_id):
             client.phone = phone
             client.referral_source = referral_source
             client.client_type = client_type
+
+            if default_session_amount_str:
+                try:
+                    default_session_amount = Decimal(default_session_amount_str)
+                except (ValueError, TypeError, InvalidOperation):
+                    messages.error(request, gettext("Invalid session template amount."))
+                    return render(request, 'accounting/edit_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'client': client,
+                        'form_data': request.POST
+                    })
+                if default_session_amount < 0:
+                    messages.error(request, gettext("Session template amount cannot be negative."))
+                    return render(request, 'accounting/edit_client.html', {
+                        'client_types': Client.CLIENT_TYPE_CHOICES,
+                        'client': client,
+                        'form_data': request.POST
+                    })
+                client.default_session_amount = default_session_amount
+            else:
+                client.default_session_amount = None
+
             client.save()
 
             messages.success(request, gettext("Client %(client_name)s updated successfully.") % {

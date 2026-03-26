@@ -181,6 +181,17 @@
             </div>
 
             <div class="profile-item">
+                <strong>{% trans "Session template amount" %}:</strong>
+                <p>
+                    {% if client.default_session_amount is not None %}
+                        {{ client.default_session_amount }} AZN
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="profile-item">
                 <strong>{% trans "Total top-up cancellations" %}:</strong>
                 <p>{{ total_adjusted }} AZN</p>
             </div>

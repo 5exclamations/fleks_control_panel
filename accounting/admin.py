@@ -15,7 +15,7 @@ class TransactionAdmin(admin.ModelAdmin):
 #admin panel for clients
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'balance', 'lessons_balance')
+    list_display = ('full_name', 'balance', 'default_session_amount')
     search_fields = ('full_name',)
 
 
