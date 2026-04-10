@@ -80,10 +80,17 @@
             <form method="get" class="clients-search">
                 <input
                     type="text"
+                    list="clients_search_list"
                     name="q"
                     placeholder="{% trans 'Search by full name or phone' %}"
                     value="{{ query }}"
+                    autocomplete="off"
                 />
+                <datalist id="clients_search_list">
+                    {% for client in all_clients %}
+                        <option value="{{ client.full_name }}"></option>
+                    {% endfor %}
+                </datalist>
                 <button type="submit" class="btn-sm btn-view">{% trans "Search" %}</button>
                 <a href="{% url 'clients_list' %}" class="btn-link btn-sm btn-reset">{% trans "Reset" %}</a>
             </form>

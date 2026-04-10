@@ -552,6 +552,8 @@ def reports(request):
 
     selected_client_name = ''
     selected_worker_name = ''
+    selected_client_display = request.GET.get('client_display', '').strip()
+    selected_worker_display = request.GET.get('worker_display', '').strip()
 
     # date filtration
     now = timezone.now().date()
@@ -620,6 +622,7 @@ def reports(request):
             selected_client = Client.objects.filter(id=int(selected_client_id)).first()
             if selected_client:
                 selected_client_name = selected_client.full_name
+                selected_client_display = selected_client.full_name
         except ValueError:
             messages.error(request, gettext("Invalid client identifier."))
 
@@ -633,6 +636,7 @@ def reports(request):
             selected_worker = Worker.objects.select_related('user').filter(id=int(selected_worker_id)).first()
             if selected_worker:
                 selected_worker_name = selected_worker.user.get_full_name() or selected_worker.user.username
+                selected_worker_display = selected_worker_name
         except ValueError:
             messages.error(request, gettext("Invalid worker identifier."))
 
@@ -703,12 +707,15 @@ def reports(request):
 
 
     if _has_new_client_fields():
-        context['clients'] = Client.objects.all()
+        context['clients'] = Client.objects.all().order_by('full_name')
     else:
         context['clients'] = []
-    context['workers'] = Worker.objects.select_related('user').all()
+
+    context['workers'] = Worker.objects.select_related('user').all().order_by('user__username')
     context['selected_client_id'] = selected_client_id or ''
     context['selected_worker_id'] = selected_worker_id or ''
+    context['selected_client_display'] = selected_client_display
+    context['selected_worker_display'] = selected_worker_display
     context['transaction_id_search'] = transaction_id_search
     context['selected_client_name'] = selected_client_name
     context['selected_worker_name'] = selected_worker_name
@@ -760,7 +767,8 @@ def clients_list(request):
     """
     query = request.GET.get('q', '').strip()
 
-    clients_qs = Client.objects.all()
+    all_clients_qs = Client.objects.all().order_by('full_name')
+    clients_qs = all_clients_qs
 
     if query:
         clients_qs = clients_qs.filter(
@@ -768,10 +776,9 @@ def clients_list(request):
             Q(phone__icontains=query)
         )
 
-    clients_qs = clients_qs.order_by('full_name')
-
     context = {
         'clients': clients_qs,
+        'all_clients': all_clients_qs,
         'query': query,
     }
     return render(request, 'accounting/clients_list.html', context)

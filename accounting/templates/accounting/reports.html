@@ -75,22 +75,34 @@
                 <input type="date" id="end_date" name="end_date" value="{{ end_date_input }}">
             </div>
             <div>
-                <label for="client_id">{% trans "Client" %}:</label>
-                <select id="client_id" name="client_id">
-                    <option value="">{% trans "All clients" %}</option>
+                <label for="client_display">{% trans "Client" %}:</label>
+                <input list="client_report_list"
+                       id="client_display"
+                       name="client_display"
+                       value="{{ selected_client_display }}"
+                       placeholder="{% trans 'Search client' %}"
+                       autocomplete="off">
+                <input type="hidden" id="client_id" name="client_id" value="{{ selected_client_id }}">
+                <datalist id="client_report_list">
                     {% for c in clients %}
-                        <option value="{{ c.id }}" {% if selected_client_id == c.id|stringformat:'s' %}selected{% endif %}>{{ c.full_name }}</option>
+                        <option data-id="{{ c.id }}" value="{{ c.full_name }}"></option>
                     {% endfor %}
-                </select>
+                </datalist>
             </div>
             <div>
-                <label for="worker_id">{% trans "Worker" %}:</label>
-                <select id="worker_id" name="worker_id">
-                    <option value="">{% trans "All workers" %}</option>
+                <label for="worker_display">{% trans "Worker" %}:</label>
+                <input list="worker_report_list"
+                       id="worker_display"
+                       name="worker_display"
+                       value="{{ selected_worker_display }}"
+                       placeholder="{% trans 'Search worker' %}"
+                       autocomplete="off">
+                <input type="hidden" id="worker_id" name="worker_id" value="{{ selected_worker_id }}">
+                <datalist id="worker_report_list">
                     {% for w in workers %}
-                        <option value="{{ w.id }}" {% if selected_worker_id == w.id|stringformat:'s' %}selected{% endif %}>{{ w.user.username }}</option>
+                        <option data-id="{{ w.id }}" value="{{ w.user.get_full_name|default:w.user.username }}"></option>
                     {% endfor %}
-                </select>
+                </datalist>
             </div>
             <button type="submit">{% trans "Show period" %}</button>
         </form>
@@ -161,5 +173,34 @@
         <p>{% trans "No operations found for the selected period." %}</p>
     {% endif %}
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    function wireDatalist(displayId, hiddenId, listId) {
+        const display = document.getElementById(displayId);
+        const hidden = document.getElementById(hiddenId);
+        const list = document.getElementById(listId);
+        const options = list ? Array.from(list.children) : [];
+        if (!display || !hidden) return;
+
+        function tryMatch() {
+            const val = String(display.value || '').toLowerCase();
+            const match = options.find(function(o) {
+                return String(o.value || '').toLowerCase() === val;
+            });
+            hidden.value = match ? (match.dataset.id || '') : '';
+        }
+
+        display.addEventListener('input', tryMatch);
+        display.addEventListener('change', tryMatch);
+        display.addEventListener('blur', tryMatch);
+    }
+
+    wireDatalist('client_display', 'client_id', 'client_report_list');
+    wireDatalist('worker_display', 'worker_id', 'worker_report_list');
+})();
+</script>
 {% endblock %}
 
