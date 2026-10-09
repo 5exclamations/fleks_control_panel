@@ -10,13 +10,37 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+import sys
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qsl
 from pathlib import Path
 
+# Configuration comes from environment variables (Render: service -> Environment).
+# For local development, put them in a gitignored .env file (see .env.example).
+# Variables already set in the environment always win over values from .env files.
 load_dotenv()
+if getattr(sys, 'frozen', False):
+    # PyInstaller build: read the .env placed next to the executable
+    load_dotenv(Path(sys.executable).resolve().parent / '.env')
+load_dotenv(Path(__file__).resolve().parent / '.env')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
+
+
+def env_bool(name, default):
+    value = os.getenv(name, '').strip().lower()
+    if not value:
+        return default
+    return value in ('1', 'true', 'yes', 'on')
+
+
+def env_list(name, default):
+    value = os.getenv(name, '').strip()
+    if not value:
+        return default
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +49,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Defaults to True to keep the current behaviour; set DEBUG=False in production.
+DEBUG = env_bool('DEBUG', True)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SESSION_COOKIE_SECURE = True
@@ -34,11 +59,12 @@ CSRF_COOKIE_SECURE = True
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-ALLOWED_HOSTS = [
+# Comma-separated list, e.g. ALLOWED_HOSTS=fleks-control-panel.onrender.com,localhost
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', [
     'fleks-control-panel.onrender.com',
     '127.0.0.1',
     'localhost'
-]
+])
 
 
 INSTALLED_APPS = [
@@ -87,6 +113,8 @@ WSGI_APPLICATION = 'DjangoProject1.wsgi.application'
 
 
 SECRET_KEY = os.getenv('SECRET_KEY')
+if not os.getenv("DATABASE_URL"):
+    raise ImproperlyConfigured("DATABASE_URL is not set. Configure it in the environment or in a .env file (see .env.example).")
 tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 DATABASES = {
     'default': {
@@ -95,7 +123,7 @@ DATABASES = {
         'USER': tmpPostgres.username,
         'PASSWORD': tmpPostgres.password,
         'HOST': tmpPostgres.hostname,
-        'PORT': 5432,
+        'PORT': tmpPostgres.port or 5432,
         'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
     }
 }

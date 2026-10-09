@@ -44,3 +44,20 @@ The system features a complete client balance workflow:
 * **Deployment:** Render
 * **Static Files:** WhiteNoise
 * **Web Server:** Gunicorn
+
+---
+
+## Configuration
+
+All sensitive configuration is read from environment variables; none of it is stored in this repository.
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | yes | PostgreSQL connection string (Neon) |
+| `SECRET_KEY` | yes | Django secret key |
+| `DEBUG` | no | `True`/`False`. Defaults to `True` to keep the current behaviour; set `False` in production |
+| `ALLOWED_HOSTS` | no | Comma-separated host names. Defaults to `fleks-control-panel.onrender.com,127.0.0.1,localhost` |
+
+* **Production (Render):** set the variables in the Render dashboard under *Service → Environment*.
+* **Local development:** copy `.env.example` to `.env` (repository root or `DjangoProject1/.env`) and fill in your own values. `.env` files are gitignored.
+* **Desktop build (PyInstaller):** build artifacts (`build/`, `dist/`) are not committed. Place a `.env` file next to `FleksControlPanel.exe`.
